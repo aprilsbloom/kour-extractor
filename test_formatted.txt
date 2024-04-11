@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en-us" id="mainhtml">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+    <!-- KOUR VANILLA VERSION -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VGVP085QMS"></script>
+    <script defer>
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.addedNodes != null && mutation.addedNodes.length > 0) {
+                    for (var addedNode of mutation.addedNodes) {
+                        if ((addedNode.data && String(addedNode.data).includes("==UserScript==")) || (addedNode.innerHTML && addedNode.innerHTML.includes("==UserScript=="))) {
+                            //hacking detected
+                            //window.location.href = 'https://kour.io/a';
+                            while (true) { }
+                        }
+                    }
+                }
+            });
+        });
+        observer.observe(document, { childList: true, subtree: true });
+    </script>
+    <script>
+        function requestNewVersion() {
+            location.reload(true);
+        }
+        window.alert = function () { };
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VGVP085QMS');
+        function reportLoadingStart() {
+            gtag('event', 'loading_start', {
+                'event_category': 'Game Loading',
+                'event_label': 'Start'
+            });
+        }
+        function reportVideoAdSource(source) {
+            gtag('event', 'videoad_source', {
+                'event_category': 'Video',
+                'event_label': source,
+                'non_interaction': true
+            });
+        }
+        function reportLoadingFinished() {
+            var banrs = document.getElementById("fullscreen-banrs");
+            if (banrs)
+                banrs.style.display = "block";
+            try {
+                PokiSDK.gameLoadingFinished();
+            } catch { }
+            gtag('event', 'loading_finished', {
+                'event_category': 'Game Loading',
+                'event_label': 'Finished'
+            });
+        }
+        function reportCustom(reportEventName, gameVersion) {
+            gtag('event', reportEventName, {
+                'event_category': 'interaction',
+                'event_label': gameVersion
+            });
+        }
+        let currentMap = null; // Keeps track of the current map
+        let mapEntryTime = {}; // Keeps track of entry times for all maps
+
+        function reportMapEntry(mapName) {
+            currentMap = mapName; // Set the current map
+            mapEntryTime[mapName] = Date.now(); // Record entry time for the map
+            gtag('event', 'map_entry', {
+                'event_category': 'Map Playtime',
+                'event_label': mapName,
+                'non_interaction': true
+            });
+        }
+
+        function reportMapExit() {
+            if (currentMap && mapEntryTime[currentMap]) {
+                let playtime = Date.now() - mapEntryTime[currentMap]; // Calculate playtime in milliseconds
+                gtag('event', 'map_exit', {
+                    'event_category': 'Map Playtime',
+                    'event_label': currentMap,
+                    'value': playtime, // Playtime in milliseconds
+                    'non_interaction': true
+                });
+                // Reset the tracking variables
+                delete mapEntryTime[currentMap];
+                currentMap = null; // Clear the current map as the player has exited
+            } else {
+                console.error("Error: reportMapExit called without a matching reportMapEntry or map name was not recorded.");
+            }
+        }
+
+        (function () {
+            var originalConsoleWarn = console.warn;
+            var originalConsoleLog = console.log;
+            var suppressedMessages = [
+                "cookie will",
+                "this extension has",
+                "requestAnimationFrame",
+                "was not allowed",
+                "team",
+                "memorysetup-",
+                "GL_EXT",
+                "GL_WEBGL",
+                "PostProcessing/",
+                "ERROR: Shader",
+                "GPT",
+                "allow-scripts",
+                "length of sound"
+            ];
+            function normalizeText(text) {
+                return text.toLowerCase().replace(/\s+/g, "").replace(/[\n\r]+/g, "");
+            }
+            function shouldSuppress(args) {
+                var message = Array.from(args).map(function (arg) {
+                    // If an argument is an object, attempt to convert it to a string
+                    if (typeof arg === 'object') {
+                        try {
+                            arg = JSON.stringify(arg);
+                        } catch (e) {
+                            arg = 'Object';
+                        }
+                    }
+                    return normalizeText(String(arg));
+                }).join(""); // Concatenate all arguments into a single string without spaces
+
+                return suppressedMessages.some(function (partialMessage) {
+                    return message.includes(normalizeText(partialMessage));
+                });
+            }
+            console.warn = function () {
+                if (!shouldSuppress(arguments)) {
+                    originalConsoleWarn.apply(console, arguments);
+                }
+            };
+            console.log = function () {
+                if (!shouldSuppress(arguments)) {
+                    originalConsoleLog.apply(console, arguments);
+                }
+            };
+        })();
+    </script>
+    <link rel="manifest" href="manifest.webmanifest">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kour.io | FPS io Game</title>
+    <meta name="description" content="Kour.io is a free Multiplayer Online FPS Game. No Download needed! Become the #1 Kour player today in this first-person shooter IO Kour game.">
+    <meta name="keywords" content="Kour.io, battle royale, 3D game, online multiplayer, free game, brawl stars, browser-based, shooting game, battle royale game, IO game, tank game, online gaming, multiplayer game, friends, weapons, coins, action-packed">
+    <meta name="author" content="Lee Zak">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <meta content="Kour.io | FPS Game" property="og:title" />
+    <meta content="Kour.io is a free Multiplayer Online FPS Game. No Download needed! Become the #1 Kour player today in this first-person shooter IO Kour game." property="og:description" />
+    <meta content="https://kour.io/TemplateData/background-og.webp" property="og:image" />
+    <meta property="og:url" content="https://kour.io" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kour.io" />
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kour.io | FPS Game">
+    <meta name="twitter:description" content="Kour.io is a free Multiplayer Online FPS Game. No Download needed! Become the #1 Kour player today in this first-person shooter IO Kour game.">
+    <meta name="twitter:image" content="https://kour.io/TemplateData/background-og.webp">
+    <meta name="twitter:url" content="https://kour.io">
+    <meta content="#ffd900" data-react-helmet="true" name="theme-color" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fjalla+One&display=swap');
+    </style>
+    <script src="sdkManager.js"></script>
+    <link rel="preload" href="https://kour.io/TemplateData/background.webp" as="image">
+    <script>
+        window.aiptag = window.aiptag || { cmd: [] };
+        aiptag.cmd.display = aiptag.cmd.display || [];
+        aiptag.cmd.player = aiptag.cmd.player || [];
+        aiptag.cmp = {
+            show: true,
+            position: "centered",
+            button: true,
+            buttonText: "Privacy settings",
+            buttonPosition: "bottom-left"
+        }
+        aiptag.cmd.player.push(function () {
+            aiptag.adplayer = new aipPlayer({
+                AD_WIDTH: 960,
+                AD_HEIGHT: 540,
+                AD_DISPLAY: 'fullscreen',
+                LOADING_TEXT: 'loading advertisement',
+                PREROLL_ELEM: function () { return document.getElementById('videoad') },
+                AIP_COMPLETE: function (state) {
+                    console.log("Video Ad Completed: " + state);
+                    unityInstance.SendMessage('MainManager', 'OnDaReveresedFinishedJS', state.toString());
+                }
+            });
+        });
+    </script>
+    <script async src="//api.adinplay.com/libs/aiptag/pub/LGP/kour.io/tag.min.js"></script>
+</head>
+<body class="dark" style="background-color: black;">
+    <script>
+        function openPaymentStation(token) {
+            console.log("openPaymentStation:token=" + openPaymentStation);
+            // Open the Xsolla payment UI in a new window with the provided token
+            var paymentUrl = `https://sandbox-secure.xsolla.com/paystation4/?access_token=${token}`;
+            window.open(paymentUrl, 'PaymentStation', 'width=800,height=600');
+        }
+    </script>
+
+
+
+    <div id="videoad"></div>
+    <div id="fullscreen-banrs" style="pointer-events: all; display: none; user-select: none; position: absolute; top: 0; right: 0; bottom: 0; left: 0;">
+        <div id='kour-io_300x250-parent' style="pointer-events: all; display: block; position: absolute; transform-origin: top right; top: 20%; right: 1%; z-index: 9999; width: 310px; height: 260px; padding: 5px; ">
+            <div id='kour-io_300x250' style="user-select: none; width: 300px; height: 250px;">
+                <!--
+                    <script type='text/javascript'>
+                        aiptag.cmd.display.push(function () { aipDisplayTag.display('kour-io_300x250'); });
+                    </script>
+                -->
+            </div>
+        </div>
+        <div id='kour-io_728x90-parent' style="pointer-events: all; display: block; position: absolute; transform-origin: bottom center; bottom: 1%; left: 0px; right: 0px; margin-left: auto; margin-right: auto; z-index: 9999; width: 738px; height: 100px; padding: 5px; ">
+            <div id='kour-io_728x90' style="user-select: none; width: 728px; height: 90px;">
+                <!--
+                    <script type='text/javascript'>
+                        aiptag.cmd.display.push(function () { aipDisplayTag.display('kour-io_728x90'); });
+                    </script>
+                -->
+            </div>
+        </div>
+        <div id='kour-io_300x600-parent' style="pointer-events: all; display: block; position: absolute; transform-origin: top left; top: 20%; left: 1%; z-index: 9999; width: 310px; height: 610px; padding: 5px; ">
+            <div id='kour-io_300x600' style="user-select: none; width: 300px; height: 600px;">
+                <!--
+                    <script type='text/javascript'>
+                        aiptag.cmd.display.push(function () { aipDisplayTag.display('kour-io_300x600'); });
+                    </script>
+                -->
+            </div>
+        </div>
+    </div>
+    <div id="rotateMessage" class="rotate-message">
+        <p>Rotate to landscape mode!</p>
+        <img src="https://kour.io/rotate.webp" style="width: 50%;" />
+        <button id="usePortraitBtn">  Use Portrait Mode  </button>
+    </div>
+    <script src="rotateDevice.js"></script>
+    <script>
+        var preventUnload = function (e) {
+            reportMapExit();
+            e.preventDefault();
+            e.returnValue = '';
+        };
+        function PreventCtrlW() {
+            window.addEventListener('beforeunload', preventUnload);
+        }
+        function AllowCtrlW() {
+            window.removeEventListener('beforeunload', preventUnload);
+        }
+        function goDeepFullscreen() {
+        }
+        function goFullscreenMobile() {
+            var elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) { // Firefox
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { // IE/Edge
+                elem.msRequestFullscreen();
+            }
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(function () {
+                    // Ignore errors for unsupported browsers
+                });
+            }
+            window.addEventListener('resize', function () {
+            });
+            setTimeout(function () {
+                window.scrollTo(0, 1);
+            }, 100);
+        }
+        function copyCurrentURL() {
+            let currentUrl = window.location.href;
+            const el = document.createElement('textarea');
+            el.value = currentUrl;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
+        function copyString(x) {
+            const el = document.createElement('textarea');
+            el.value = x;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
+        function SetCursor(x) {
+            console.log("SetCursor - " + x);
+            document.getElementById("mainhtml").style.cursor = x;
+        }
+        function reload() {
+            location.reload();
+        }
+        function setCursor(cursorStyle) {
+            var canvas = document.getElementById('unity-canvas');
+            canvas.style.cursor = cursorStyle;
+        }
+    </script>
+    <div id="unity-container" style="position: absolute; width: 100%; height: 100%">
+        <canvas id="unity-canvas" width=1920 height=1080 style="width: 100%; height: 100%; user-select: none; -webkit-user-select: none;"></canvas>
+    </div>
+    <div id="loading-cover" style="display: block; background-image: url('https://kour.io/TemplateData/background.webp') ">
+        <div id="loading-cover-2"></div>
+        <img class="kourTitle" src="https://kour.io/kour-title.webp">
+        <p id="loadingTxt">Loading Kour Essentials...</p>
+        <p id="loadingTxtMinimal"></p>
+        <div id="unity-loading-bar" style="user-select: none;">
+            <div id="unity-progress-bar-empty" style="display: none; margin-top: 0px;">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+            <div class="spinner"></div>
+        </div>
+        <div id="unity-loading-bar-fast" style="user-select: none; display: none; margin-top: 0px;">
+            <span class="fast-loader"></span>
+        </div>
+        <img id="refreshImage" src="https://kour.io/refresh1.webp" alt="Please wait for the game to load.">
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                onWindowResize();
+                const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isiOS) {
+                    document.querySelector('meta[name="theme-color"]').setAttribute("content", "#1f1f1f");
+                }
+                setTimeout(function () {
+                    var loadingCover2 = document.getElementById('loading-cover-2');
+                    if (loadingCover2) {
+                        loadingCover2.style.opacity = 1;
+                    }
+                    setTimeout(function () {
+                        if (loadingCover2) {
+                            loadingCover2.style.opacity = 0;
+                        }
+                    }, 17500);
+                }, 15000);
+                setTimeout(function () {
+                    var refreshImg = document.getElementById('refreshImage');
+                    if (refreshImg !== null) {
+                        refreshImg.style.animation = 'slideUp 1.0s forwards';
+                        refreshImg.addEventListener("mousedown", function (event) {
+                            event.preventDefault();
+                            showLoadingInfoMessage();
+                        });
+                        refreshImg.addEventListener("touchstart", function (event) {
+                            event.preventDefault();
+                            showLoadingInfoMessage();
+                        });
+                        function showLoadingInfoMessage() {
+                            showRetryPopup("Loading is ALMOST done. Kour.io is a first person shooter, so if you like shooting gunsâ¦ wait a little bit more!<br>Click to close", false, false);
+                        }
+                        setTimeout(function () {
+                            refreshImg.style.animation = 'slideDown 1.0s forwards';
+                            setTimeout(function () {
+                                refreshImg.src = 'https://kour.io/refresh2.webp';
+                                setTimeout(function () {
+                                    refreshImg.src = 'https://kour.io/refresh2.webp';
+                                    refreshImg.style.animation = 'slideUp 1.0s forwards';
+                                }, 4000);
+                            }, 1000);
+
+                        }, 17500);
+                    }
+                }, 10000);
+            });
+        </script>
+    </div>
+    <script>
+        var finishedDownloadingDataFile = false;
+        var finishedDownloadingBoth = false;
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                return Promise.all(registrations.map(function (registration) {
+                    return registration.unregister();
+                }));
+            }).then(function () {
+                return navigator.serviceWorker.register('ServiceWorker.js');
+            }).then(function (registration) {
+                const knownFinalSizeInBytes = 56_396_206;
+                const fakeMulti = 0.3;
+                navigator.serviceWorker.addEventListener('message', function (event) {
+                    const message = event.data;
+                    if (message.type === 'DOWNLOAD_PROGRESS') {
+                        let receivedLength = message.receivedLength;
+                        if (receivedLength == -1 && !finishedDownloadingBoth) {
+                            finishedDownloadingBoth = true;
+                            document.querySelector("#loadingTxt").innerHTML = `Done!`;
+                            document.querySelector("#loadingTxtMinimal").innerHTML = `Decompressing...`;
+                            var loadingTextInterval;
+                            var loadingFakeTxts = [
+                                "Downloading Models",
+                                "Downloading Menu",
+                                "Downloading Maps",
+                                "Downloading Buttons",
+                                "Downloading 3D Objects",
+                                "Downloading Characters",
+                                "Downloading Animations",
+                                "Downloading Graphics",
+                                "Downloading Gradients",
+                                "Downloading Shop",
+                                "Downloading Servers",
+                                "Downloading Lobbies",
+                                "Downloading Shaders",
+                                "Downloading Game Modes",
+                                "Downloading Enemy Profiles",
+                                "Downloading Weapon Upgrades",
+                                "Downloading Armor Enhancements",
+                                "Downloading Soundtracks",
+                                "Downloading Voice Packs",
+                                "Downloading Multiplayer Modes",
+                                "Downloading Special Effects",
+                                "Downloading Achievements",
+                                "Downloading Replay Data",
+                                "Downloading Leaderboard Information",
+                                "Downloading Custom Skins",
+                                "Downloading Environmental Details"
+                            ];
+
+                            function updateLoadingText() {
+                                var randomTip = loadingFakeTxts[Math.floor(Math.random() * loadingFakeTxts.length)];
+                                loadingTxt.innerHTML = randomTip;
+                                var rnd = Math.random() < 0.5;
+                                var nextTipTimeout = (rnd ? 50 : 300);
+                                clearTimeout(loadingTextInterval);
+                                loadingTextInterval = setTimeout(updateLoadingText, nextTipTimeout);
+                            }
+                            updateLoadingText();
+                        }
+                        if (finishedDownloadingBoth) {
+                            return;
+                        }
+                        let percent = (receivedLength / knownFinalSizeInBytes) * 100;
+                        percent = easeOutQuadPercentage(percent);
+                        percent = Math.round(percent * 10) / 10;
+
+                        let str = `${formatNumber(receivedLength * fakeMulti)} bytes of ${formatNumber(knownFinalSizeInBytes * fakeMulti)} bytes`;
+
+                        window.receivedServiceWorkerMessage = true;
+                        let isData = message.isData;
+                        if (finishedDownloadingDataFile && isData)
+                            return;
+                        document.querySelector("#loadingTxt").innerHTML = `Downloading File ${(isData ? 1 : 2)}/2: ${percent}%`;
+                        document.querySelector("#loadingTxtMinimal").innerHTML = `${str}`;
+                        if (!isData)
+                            finishedDownloadingDataFile = true;
+                    }
+                });
+            }).catch(function (err) {
+                console.log('Service Worker registration failed: ', err);
+            });
+        } else {
+            console.error("cannot add worker.");
+        }
+        function easeOutQuadPercentage(percent) {
+            var t = percent / 100;
+            return (1 - (1 - t) * (1 - t)) * 100.0;
+        }
+        function formatNumber(number) {
+            if (number < 1000) {
+                return number.toString(); // Return the original number if less than 1000
+            } else if (number < 1000000) {
+                return (number / 1000).toFixed(2) + 'k'; // Convert to 'k' format for thousands
+            } else {
+                return (number / 1000000).toFixed(2) + 'M'; // Convert to 'M' format for millions
+            }
+        }
+        function onWindowResize() {
+            var newScale = Math.min(window.innerWidth / 1920.0, window.innerHeight / 960.0);
+            var ad1 = document.getElementById("kour-io_300x250-parent");
+            var ad2 = document.getElementById("kour-io_728x90-parent");
+            var ad3 = document.getElementById("kour-io_300x600-parent");
+            if (ad1) ad1.style.transform = "scale(" + newScale + ")";
+            if (ad2) ad2.style.transform = "scale(" + newScale + ")";
+            if (ad3) ad3.style.transform = "scale(" + newScale + ")";
+        };
+        onWindowResize();
+        window.onresize = onWindowResize;
+        window.onload = onWindowResize;
+        function SetAds(presetName72890, presetName300600, presetName300250) {
+            var ad1 = document.getElementById("kour-io_728x90-parent");
+            var ad2 = document.getElementById("kour-io_300x600-parent");
+            var ad3 = document.getElementById("kour-io_300x250-parent");
+            if (ad1) {
+                if (presetName72890 === "hidden") {
+                    ad1.style.display = "none";
+                }
+                else if (presetName72890 === "bottom") {
+                    ad1.style.display = "block";
+                }
+            }
+            if (ad2) {
+                if (presetName300600 === "hidden") {
+                    ad2.style.display = "none";
+                } else if (presetName300600 === "left") {
+                    ad2.style.transformOrigin = "top left";
+                    ad2.style.top = "20%";
+                    ad2.style.left = "1%";
+                    ad2.style.removeProperty('right');
+                    ad2.style.display = "block";
+                } else if (presetName300600 === "right") {
+                    ad2.style.transformOrigin = "top right";
+                    ad2.style.top = "20%";
+                    ad2.style.right = "1%";
+                    ad2.style.removeProperty('left');
+                    ad2.style.display = "block";
+                }
+            }
+            if (ad3) {
+                if (presetName300250 === "hidden") {
+                    ad3.style.display = "none";
+                } else if (presetName300250 === "left") {
+                    ad3.style.transformOrigin = "top left";
+                    ad3.style.top = "33%";
+                    ad3.style.left = "6%";
+                    ad3.style.removeProperty('right');
+                    ad3.style.display = "block";
+                } else if (presetName300250 === "right") {
+                    ad3.style.transformOrigin = "top right";
+                    ad3.style.top = "20%";
+                    ad3.style.right = "1%";
+                    ad3.style.removeProperty('left');
+                    ad3.style.display = "block";
+                } else if (presetName300250 === "topleft") {
+                    ad3.style.transformOrigin = "top left";
+                    ad3.style.top = "10%";
+                    ad3.style.left = "1%";
+                    ad3.style.removeProperty('right');
+                    ad3.style.display = "block";
+                }
+            }
+        }
+    </script>
+    <style>
+        #words {
+            font-family: 'Fjalla One', sans-serif;
+            text-align: left;
+            justify-content: left;
+            user-select: none;
+            font-size: 37px;
+        }
+
+        #unity-logo {
+            max-width: 300px;
+        }
+
+        @media (max-width: 1200px) {
+            #words {
+                font-size: 30px;
+            }
+
+            #unity-logo {
+                max-width: 250px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            #words {
+                font-size: 25px;
+            }
+
+            #unity-logo {
+                max-width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #words {
+                font-size: 20px;
+            }
+
+            #unity-logo {
+                max-width: 150px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #words {
+                font-size: 15px;
+            }
+
+            #unity-logo {
+                max-width: 100px;
+            }
+        }
+    </style>
+    <script>
+
+            function isVirtualControls() {
+                var userAgent = navigator.userAgent.toLowerCase();
+
+                if (/windows nt/.test(userAgent) && !/windows phone/.test(userAgent)) {
+                    return false;
+                }
+
+                if (/CrOS/.test(userAgent)) {
+                    return false;
+                }
+
+                if (/mobile/.test(userAgent)) {
+                    return true;
+                }
+
+                var isIPad = /ipad|macintosh/.test(userAgent) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+                var isAndroidTablet = /android/.test(userAgent) && !/mobile/.test(userAgent);
+                if (isIPad || isAndroidTablet) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            window.receivedServiceWorkerMessage = false;
+            function preventZoomDuringLoading(event) {
+                if (window.gameLoading) {
+                    event.preventDefault();
+                }
+            }
+            document.addEventListener('touchstart', preventZoomDuringLoading, { passive: false });
+            document.addEventListener('touchmove', preventZoomDuringLoading, { passive: false });
+            function playerPrefsSetFloat(key, value) {
+                localStorage.setItem(key, value.toString());
+            }
+            function playerPrefsGetFloat(key, defaultValue = 0.9) {
+                const storedValue = localStorage.getItem(key);
+                const parsedValue = storedValue ? parseFloat(storedValue) : defaultValue;
+                return parsedValue;
+            }
+          var container = document.querySelector("#unity-container");
+          var canvas = document.querySelector("#unity-canvas");
+          const loadingCover = document.querySelector("#loading-cover");
+          const fastLoadingAnim = document.querySelector("#unity-loading-bar-fast");
+          const progressBarEmpty = document.querySelector("#unity-progress-bar-empty");
+          const loadingTxt = document.querySelector("#loadingTxt");
+          var progressBarFull = document.querySelector("#unity-progress-bar-full");
+          const spinner = document.querySelector('.spinner');
+          var isMobile = isVirtualControls();
+
+          function loadAdBannerScript(tagad) {
+            aiptag.cmd.display.push(function () { aipDisplayTag.display(`${tagad}`); });
+          }
+          if (isMobile){
+            //loadAdBannerScript('kour-io_728x90');
+            //loadAdBannerScript('kour-io_300x250');
+            //loadAdBannerScript('kour-io_300x600');
+          }
+          else{
+            loadAdBannerScript('kour-io_728x90');
+            loadAdBannerScript('kour-io_300x250');
+            loadAdBannerScript('kour-io_300x600');
+          }
+
+          var buildUrl = isMobile ? "mobile/Build" : "Build";
+          var loaderUrl = buildUrl + "/KourWeb.loader2.js";
+          var config = {
+              dataUrl: buildUrl + "/d0f055255ca2fb65da1cbff94963ad53.data.br",
+              frameworkUrl: buildUrl + "/523c0e683adfc817c0f8750f4509b391.js.br",
+              codeUrl: buildUrl + "/d34a2e2ad6ab8dac9752b9a6b530f49e.wasm.br",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "LEGiONPlatforms",
+            productName: "Kour.io",
+            productVersion: "2.41",
+            devicePixelRatio: playerPrefsGetFloat("renderScale", 0.9)
+          };
+          if (isMobile) {
+            var meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+            document.getElementsByTagName('head')[0].appendChild(meta);
+            config.devicePixelRatio = playerPrefsGetFloat("renderScale", 0.9) * 1.00;
+          }
+            var tips = [
+                "Downloading Models",
+                "Installing Menu",
+                "Downloading Maps",
+                "Downloading Buttons",
+                "Installing 3D Objects",
+                "Downloading Characters",
+                "Installing Animations",
+                "Downloading Graphics",
+                "Downloading Gradients",
+                "Installing Shop",
+                "Installing Servers",
+                "Downloading Lobbies",
+                "Installing Shaders",
+                "Downloading Game Modes",
+                "Downloading Enemy Profiles",
+                "Installing Weapon Upgrades",
+                "Downloading Armor Enhancements",
+                "Installing Soundtracks",
+                "Downloading Voice Packs",
+                "Downloading Multiplayer Modes",
+                "Installing Special Effects",
+                "Downloading Achievements",
+                "Downloading Replay Data",
+                "Downloading Leaderboard Information",
+                "Installing Custom Skins",
+                "Installing Environmental Details"
+            ];
+            function updateLoadingTextWithTip() {
+                var randomTip = tips[Math.floor(Math.random() * tips.length)];
+                if (!window.receivedServiceWorkerMessage)
+                    loadingTxt.innerHTML = randomTip;
+                var longerDuration = Math.random() < 0.2;
+                var rnd2 = Math.random() < 0.5;
+                var nextTipTimeout = longerDuration ? 1000 : (rnd2 ? 250 : 500);
+                clearTimeout(tipInterval);
+                tipInterval = setTimeout(updateLoadingTextWithTip, nextTipTimeout);
+            }
+            function easeOutQuadPercentage(percent) {
+                var t = percent / 100;
+                return (1 - (1 - t) * (1 - t)) * 100.0;
+            }
+            var tipInterval;
+          loadingCover.style.display = "";
+          const _script = document.createElement("script");
+          _script.src = loaderUrl;
+          window.gameLoading = true; // Set to true during loading, and update accordingly in your code
+          reportLoadingStart();
+          var reachedLastLoadingStep = false;
+          _script.onload = () => {
+              createUnityInstance(canvas, config, (progress) => {
+                  spinner.style.display = "none";
+                  x = Math.floor(easeOutQuadPercentage(Math.max(4, Math.min(100, 100 * progress * 1.175))));
+                  if (x >= 98) {
+                      fastLoadingAnim.style.display = "flex";
+                      progressBarEmpty.style.display = "none";
+                      progressBarFull.style.display = "none";
+                      if (!reachedLastLoadingStep) {
+                          reachedLastLoadingStep = true;
+                          if (!window.receivedServiceWorkerMessage)
+                            loadingTxt.innerHTML = `Almost there...`;
+                          clearInterval(tipInterval);
+                          updateLoadingTextWithTip();
+                          tipInterval = setTimeout(updateLoadingTextWithTip, 500);
+                      }
+                  }
+                  else {
+                      fastLoadingAnim.style.display = "none";
+                      progressBarEmpty.style.display = "";
+                      progressBarFull.style.width = `${x}%`;
+                      if (!window.receivedServiceWorkerMessage)
+                        loadingTxt.innerHTML = `${x}%`;
+                  }
+              }).then((unityInstance) => {
+                  clearInterval(tipInterval);
+                  window.unityInstance = unityInstance;
+                  setTimeout(function () {
+                      var animDuration = 200;
+                      loadingCover.animate([
+                          { opacity: '1' },
+                          { opacity: '0' }
+                      ], {
+                          duration: animDuration,
+                          fill: 'forwards'
+                      });
+                      loadingCover.animate([
+                          { transform: 'scale(1)', opacity: '1' },
+                          { transform: 'scale(2)', opacity: '0' }
+                      ], {
+                          duration: animDuration,
+                          fill: 'forwards'
+                      });
+                      setTimeout(function () {
+                          if (loadingCover) {
+                              loadingCover.remove();
+                          }
+                      }, animDuration);
+                  }, 100);
+                  window.gameLoading = false;
+                  reportLoadingFinished();
+                  console.log('%cWARNING: Do not paste any scripts into this console. Pasting script/code can compromise your device and may lead to a ban.', 'color: red; font-weight: bold;');
+              }).catch((error) => {
+                  let errorMessage = (error.message ? error.message : error.toString()).toLowerCase();
+                  customOnError(errorMessage);
+              });
+            };
+            (function () {
+                const originalConsoleError = console.error;
+                console.error = function (...args) {
+                    const errorMessage = args.join(' ');
+                    if (errorMessage.includes("extra work")) {
+                        return;
+                    }
+                    customOnError(errorMessage);
+                    originalConsoleError.apply(console, args);
+                };
+            })();
+            function customOnError(message) {
+                var isFileDownloadError = message.toLowerCase().includes('failed to download file') && (message.includes('.data') || message.includes('.wasm') || message.includes('.br'));
+                var isWasmError = message.toLowerCase().includes('both async and sync fetching of the wasm failed');
+                var isUnableToLoadFileError = message.toLowerCase().includes("unable to load file") && (message.includes('.js') || message.includes('.br') || message.includes('.framework'));
+                if (isFileDownloadError || isWasmError) {
+                    showRetryPopup("Failed Downloading Game Files. <br>Click to try again.", true, true);
+                    gtag('event', "downloadGameFilesFailedErrorCatched", {
+                        'event_category': 'error',
+                        'event_label': message
+                    });
+                }
+                else if (isUnableToLoadFileError) {
+                    showRetryPopup("Failed Downloading Game Files. <br>Click to try again.", true, false);
+                    gtag('event', "downloadGameFilesFailedErrorCatched", {
+                        'event_category': 'error',
+                        'event_label': message
+                    });
+                }
+            }
+            window.addEventListener('offline', function () {
+                if (window.gameLoading)
+                    showRetryPopup("You are Offline. Please Connect to the internet. <br>Click to try again", true, false);
+            });
+            var totalRetryTimes = 0;
+            const retryUnityLoad = () => {
+                console.log("Retrying to load the unity instance (retryUnityLoad)");
+                if (!navigator.onLine) {
+                    console.log("You are not online! Abort retryUnityLoad.");
+                    return;
+                }
+                var popup = document.getElementById('unityRetryPopup');
+                if (popup != null)
+                    document.body.removeChild(popup);
+                if (window.unityInstance)
+                {
+                    console.log("unityInstance exists! Abort retryUnityLoad.");
+                    return;
+                }
+                removeScriptBySrc(loaderUrl);
+                //var refreshBtn = document.getElementById('refreshBtn');
+                //refreshBtn.style.display = "none";
+                //setTimeout(function () {
+                //    refreshBtn.style.display = "flex";
+                //}, 25000);
+                const _newScript = document.createElement("script");
+                _newScript.src = loaderUrl;
+                window.gameLoading = true;
+                reportLoadingStart();
+                var reachedLastLoadingStep = false;
+                _newScript.onload = () => {
+                    createUnityInstance(canvas, config, (progress) => {
+                        spinner.style.display = "none";
+                        x = Math.floor(easeOutQuadPercentage(Math.max(4, Math.min(100, 100 * progress * 1.175))));
+                        if (x >= 98) {
+                            fastLoadingAnim.style.display = "flex";
+                            progressBarEmpty.style.display = "none";
+                            progressBarFull.style.display = "none";
+                            if (!reachedLastLoadingStep) {
+                                reachedLastLoadingStep = true;
+                                if (!window.receivedServiceWorkerMessage)
+                                    loadingTxt.innerHTML = `Almost there...`;
+                                clearInterval(tipInterval);
+                                updateLoadingTextWithTip();
+                                tipInterval = setTimeout(updateLoadingTextWithTip, 500);
+                            }
+                        }
+                        else {
+                            fastLoadingAnim.style.display = "none";
+                            progressBarEmpty.style.display = "";
+                            progressBarFull.style.width = `${x}%`;
+                            if (!window.receivedServiceWorkerMessage)
+                                loadingTxt.innerHTML = `${x}%`;
+                        }
+                    }).then((unityInstance) => {
+                        clearInterval(tipInterval);
+                        window.unityInstance = unityInstance;
+                        setTimeout(function () {
+                            var animDuration = 200;
+                            loadingCover.animate([
+                                { opacity: '1' },
+                                { opacity: '0' }
+                            ], {
+                                duration: animDuration,
+                                fill: 'forwards'
+                            });
+                            loadingCover.animate([
+                                { transform: 'scale(1)', opacity: '1' },
+                                { transform: 'scale(2)', opacity: '0' }
+                            ], {
+                                duration: animDuration,
+                                fill: 'forwards'
+                            });
+                            setTimeout(function () {
+                                if (loadingCover) {
+                                    loadingCover.remove();
+                                }
+                            }, animDuration);
+                        }, 100);
+                        window.gameLoading = false;
+                        reportLoadingFinished();
+                        console.log('%cWARNING: Do not paste any scripts into this console. Pasting script/code can compromise your device and may lead to a ban.', 'color: red; font-weight: bold;');
+                    }).catch((error) => {
+                        let errorMessage = (error.message ? error.message : error.toString()).toLowerCase();
+                        customOnError(errorMessage);
+                    });
+                };
+                document.body.appendChild(_newScript);
+            };
+            function showRetryPopup(message, retry, retryRn) {
+                if (!window.gameLoading)
+                    return;
+                if (window.unityInstance)
+                    return;
+                if (retryRn && totalRetryTimes <= 10) {
+                    retryUnityLoad();
+                    return;
+                }
+                var existingPopup = document.getElementById('unityRetryPopup');
+                if (existingPopup) {
+                    existingPopup.querySelector('.popup-content').innerHTML = message;
+                    return;
+                }
+                var popup = document.createElement("div");
+                popup.id = 'unityRetryPopup';
+                popup.style.position = "fixed";
+                popup.style.left = "0";
+                popup.style.top = "0";
+                popup.style.width = "100%";
+                popup.style.height = "100%";
+                popup.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+                popup.style.display = "flex";
+                popup.style.alignItems = "center";
+                popup.style.justifyContent = "center";
+                popup.style.userSelect = "none";
+                popup.style.zIndex = "1000";
+                var content = document.createElement("div");
+                content.style.padding = "20px";
+                content.style.backgroundColor = "#333"; // Dark background for the content
+                content.style.color = "#fff"; // White text color
+                content.style.borderRadius = "15px"; // Rounded corners
+                content.style.textAlign = "center";
+                content.style.maxWidth = "80%";
+                content.style.fontSize = "18px";
+                content.innerHTML = message;
+                content.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+                content.style.boxShadow = "0 10px 10px rgba(0, 0, 0, 0.2)";
+                content.style.cursor = "pointer"; // Change cursor on hover
+                content.style.userSelect = "none";
+                popup.appendChild(content);
+                document.body.appendChild(popup);
+                if (retry) {
+                    popup.addEventListener("click", retryUnityLoad);
+                    popup.addEventListener("touchstart", retryUnityLoad, { passive: true });
+                }
+                else {
+                    popup.addEventListener("click", () => {
+                        document.body.removeChild(popup);
+                    });
+                    popup.addEventListener("touchstart", () => {
+                        document.body.removeChild(popup);
+                    }, { passive: true });
+                }
+            }
+            document.body.appendChild(_script);
+            function removeScriptBySrc(src) {
+                let scripts = document.getElementsByTagName('script');
+                for (let i = 0; i < scripts.length; i++) {
+                    if (scripts[i].src === src) {
+                        scripts[i].parentNode.removeChild(scripts[i]);
+                    }
+                }
+            }
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js" defer></script>
+    <script src="https://kour.io/firebase-compact.js" defer></script>
+    <script>
+        function testDevice() {
+            try {
+                navigator.getBattery().then(function (battery) {
+                    if (battery.charging && battery.chargingTime === 0) {
+                        unityInstance.SendMessage('MainManager', 'OnGotDevice', "Desktop");
+                    } else {
+                        unityInstance.SendMessage('MainManager', 'OnGotDevice', "Laptop");
+                    }
+                }).catch(function (error) {
+                    unityInstance.SendMessage('MainManager', 'OnGotDevice', "Unknown");
+                });
+            } catch (error) {
+                unityInstance.SendMessage('MainManager', 'OnGotDevice', "Unknown");
+            }
+        }
+        function SetPaypalPaymentWindow(x) {
+            document.getElementById('paypalPaymentWindow').style.display = x;
+        }
+        function CancelPaypalProcess() {
+            document.getElementById('paypalPaymentWindow').style.display = "none";
+            unityInstance.SendMessage('Payments', 'OnPayPalPurchaseFinished', "0");
+        }
+        function Purchase(amount) {
+            window.currentPaymentPrice = amount;
+            document.getElementById('paypalPaymentWindow').style.display = 'block';
+        }
+        function SetURL(add) {
+            var currentURL = window.location.protocol + "//" + window.location.host + window.location.pathname + add;
+            window.history.pushState({ path: currentURL }, '', currentURL);
+        }
+        function copyCurrentURL() {
+            var u = window.location.href;
+            setClipboard(u);
+        }
+
+        function LockCursor() {
+            canvas.requestPointerLock = canvas.requestPointerLock ||
+                canvas.mozRequestPointerLock ||
+                canvas.webkitRequestPointerLock;
+            const promise = canvas.requestPointerLock({
+                unadjustedMovement: true
+            });
+            if (!promise) {
+                console.error("Disabling mouse acceleration is not supported by this browser.");
+                canvas.requestPointerLock();
+                return;
+            }
+            promise.catch((error) => {
+                if (error.name === "NotSupportedError") {
+                    console.error("Unadjusted movement not supported by this platform, attempting to lock pointer without it.");
+                    canvas.requestPointerLock();
+                } else {
+                    console.error("Failed to lock pointer:", error);
+                }
+            });
+        }
+
+
+        document.addEventListener('pointerlockchange', lockChangeAlert, false);
+        document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+        function lockChangeAlert() {
+            if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas) {
+
+            }
+            else {
+                unityInstance.SendMessage('MainManager', 'OnEscapeJS');
+            }
+        }
+        function toggleFullscreen() {
+            if (document.fullscreenElement === null) {
+                openFullscreen();
+                return;
+            }
+            exitFullscreen();
+        }
+        function openFullscreen() {
+            document.documentElement.requestFullscreen();
+        }
+        function exitFullscreen() {
+            document.exitFullscreen();
+        }
+        function setClipboard(stringToSetAsClipboard) {
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'fixed';
+            tempInput.style.opacity = '0';
+            tempInput.value = stringToSetAsClipboard;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+        }
+        function getClipboard() {
+            navigator.clipboard.readText()
+                .then((clipboardContent) => {
+                    unityInstance.SendMessage('MainManager', 'OnGotClipboard', clipboardContent);
+                })
+                .catch((error) => {
+                    console.error('Clipboard access error:', error);
+                });
+        }
+    </script>
+<script>(function(){if (!document.body) return;var js = "window['__CF$cv$params']={r:'8728d6060c4ba7ef',t:'MTcxMjgxNjA2My41NzQwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+    </html>
