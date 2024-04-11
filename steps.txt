@@ -1,0 +1,7 @@
+uwdtool -> gets global_metadata.dat
+
+download the framework js file
+cpp2il (diffable-cs) -> gets csharp files for all dlls & showing offsets
+cpp2il (wasmmapping) -> outputs a text file which maps csharp methods to wasm methods
+
+WebAssemblyToolkit (wasm2wat) -> outputs wat files (what shows in chrome devtools)
