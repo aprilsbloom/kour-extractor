@@ -2,3 +2,4 @@ uwdtool
 GitPython
 argparse
 rich
+requests

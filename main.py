@@ -1,48 +1,82 @@
 import requests
 import re
 import os
+import random
+import string
 from logger import Logger
 from argparse import ArgumentParser
 
 logger = Logger()
 BASE_DOMAIN = 'https://kour.io'
-FRAMEWORK_REGEX = r'\"/[a-zA-Z0-9]+.js.br\"'
-DATA_REGEX = r'\"/[a-zA-Z0-9]+.data.br\"'
-WASM_REGEX = r'\"/[a-zA-Z0-9]+.wasm.br\"'
+VERSION_REGEX = r'productVersion: \"[0-9\.]+\"'
+BUILD_REGEX = r'var buildUrl = isMobile \? \"[a-zA-Z0-9\/]+\" : \"[a-zA-Z0-9]+\"'
+FRAMEWORK_REGEX = r'\"\/[a-zA-Z0-9]+.js.br\"'
+DATA_REGEX = r'\"\/[a-zA-Z0-9]+\.data\.br\"'
+WASM_REGEX = r'\"\/[a-zA-Z0-9]+.wasm.br\"'
 
-def remove_wrapped_quotes(string):
-	if string[0] == '"':
-		string = string[1:]
+char_list = string.ascii_letters + string.digits
+def random_string(length = 8):
+	return ''.join([random.choice(char_list) for i in range(length)])
 
-	if string[-1] == '"':
-		string = string[:-1]
+def remove_wrapped_quotes(str):
+	if str[0] == '"':
+		str = str[1:]
 
-	return string
+	if str[-1] == '"':
+		str = str[:-1]
+
+	return str
 
 def fetch_kour_files(has_framework = False, has_data_file = False, has_wasm = False):
 	r = requests.get(BASE_DOMAIN)
 
+	logger.info('Fetching: Game version')
+	version = remove_wrapped_quotes(re.findall(VERSION_REGEX, r.text)[0]).split('"')[1]
+	logger.success('Fetched: Game version')
+	logger.info(f'Version: {version}\n')
+	version_uid = random_string()
+	version_path = f'output/v{version} ({version_uid})'
+	os.makedirs(version_path)
+
+
 	logger.info("Fetching: Build URL")
-	build_url = re.findall(r'var buildUrl = isMobile \? \"[a-zA-Z0-9\/]+\" : \"[a-zA-Z0-9]+\"', r.text)[0]
+	build_url = re.findall(BUILD_REGEX, r.text)[0]
 	build_url = remove_wrapped_quotes(build_url.split('" : ')[1])
-	logger.success(f'Build URL: {build_url}')
+	logger.success('Fetched: Build URL')
+	logger.info(f'Build URL: {build_url}\n')
 
 	if not has_framework:
-		logger.
+		logger.info("Fetching: Framework Path")
 		framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
 		framework_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(framework_path)
-		print(framework_path)
+		logger.success('Fetched: Framework Path')
+		logger.info(f'Framework Path: {framework_path}\n')
+
+		framework_res = requests.get(framework_path)
+		with open(f'{version_path}/framework.js', 'w', encoding='utf8') as f:
+			f.write(framework_res.text)
 
 	if not has_data_file:
+		logger.info("Fetching: Unity WebData path")
 		data_path = re.findall(DATA_REGEX, r.text)[0]
 		data_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(data_path)
-		print(data_path)
+		logger.success('Fetched: Unity WebData path')
+		logger.info(f'Unity WebData path: {data_path}\n')
+
+		data_res = requests.get(data_path)
+		with open(f'{version_path}/kour.data', 'w', encoding='utf8') as f:
+			f.write(data_res.text)
 
 	if not has_wasm:
-
+		logger.info("Fetching: Web Assembly path")
 		wasm_path = re.findall(WASM_REGEX, r.text)[0]
 		wasm_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(wasm_path)
-		print(wasm_path)
+		logger.success('Fetched: Web Assembly path')
+		logger.info(f'Web Assembly path: {wasm_path}\n')
+
+		wasm_res = requests.get(wasm_path)
+		with open(f'{version_path}/kour.wasm', 'w', encoding='utf8') as f:
+			f.write(wasm_res.text)
 
 def main():
 	parser = ArgumentParser(description="A simple program")

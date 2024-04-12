@@ -10,6 +10,7 @@ colors: dict[Color, str] = {
 	'red': '#ef8d77',
 	'yellow': '#efe777',
 	'green': '#79ef77',
+	'lightblue': '#4f5975',
 	'blue': '#77b5ef',
 	'purple': '#c777ef',
 	'pink': '#ef77df',
@@ -74,7 +75,7 @@ class Logger():
 		self,
 		*args: Any
 	):
-		self._log('gray', args)
+		self._log('lightblue', args)
 
 	def error(
 		self,
