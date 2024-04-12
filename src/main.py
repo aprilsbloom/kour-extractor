@@ -5,18 +5,24 @@ import random
 import string
 from logger import Logger
 from argparse import ArgumentParser
+from uwdtool import UWDTool
 
 logger = Logger()
+state = {
+	'version': '',
+	'output_dir': ''
+}
+
 BASE_DOMAIN = 'https://kour.io'
 VERSION_REGEX = r'productVersion: \"[0-9\.]+\"'
 BUILD_REGEX = r'var buildUrl = isMobile \? \"[a-zA-Z0-9\/]+\" : \"[a-zA-Z0-9]+\"'
 FRAMEWORK_REGEX = r'\"\/[a-zA-Z0-9]+.js.br\"'
 DATA_REGEX = r'\"\/[a-zA-Z0-9]+\.data\.br\"'
 WASM_REGEX = r'\"\/[a-zA-Z0-9]+.wasm.br\"'
+CHAR_LIST = string.ascii_letters + string.digits
 
-char_list = string.ascii_letters + string.digits
 def random_string(length = 8):
-	return ''.join([random.choice(char_list) for i in range(length)])
+	return ''.join([random.choice(CHAR_LIST) for i in range(length)])
 
 def remove_wrapped_quotes(str):
 	if str[0] == '"':
@@ -27,33 +33,35 @@ def remove_wrapped_quotes(str):
 
 	return str
 
-def fetch_kour_files(has_framework = False, has_data_file = False, has_wasm = False):
+def fetch_kour_files(uid, has_framework = False, has_data_file = False, has_wasm = False):
 	r = requests.get(BASE_DOMAIN)
 
 	logger.info('Fetching: Game version')
 	version = remove_wrapped_quotes(re.findall(VERSION_REGEX, r.text)[0]).split('"')[1]
+	state['version'] = version
 	logger.success('Fetched: Game version')
 	logger.info(f'Version: {version}\n')
-	version_uid = random_string()
-	version_path = f'output/v{version} ({version_uid})'
-	os.makedirs(version_path)
-
 
 	logger.info("Fetching: Build URL")
 	build_url = re.findall(BUILD_REGEX, r.text)[0]
 	build_url = remove_wrapped_quotes(build_url.split('" : ')[1])
 	logger.success('Fetched: Build URL')
-	logger.info(f'Build URL: {build_url}\n')
+	logger.info(f'Build URL: https://kour.io/{build_url}\n')
+
+	state['output_dir'] = f'output/v{version} ({uid})'
+	os.makedirs(state['output_dir'], exist_ok=True)
 
 	if not has_framework:
 		logger.info("Fetching: Framework Path")
 		framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
 		framework_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(framework_path)
 		logger.success('Fetched: Framework Path')
-		logger.info(f'Framework Path: {framework_path}\n')
+		logger.info(f'Framework Path: {framework_path}')
 
+		logger.info("Fetching: Actual framework file")
 		framework_res = requests.get(framework_path)
-		with open(f'{version_path}/framework.js', 'w', encoding='utf8') as f:
+		logger.success('Fetched: Actual framework file, writing...\n')
+		with open(f'{state["output_dir"]}/framework.js', 'w', encoding='utf8') as f:
 			f.write(framework_res.text)
 
 	if not has_data_file:
@@ -61,10 +69,12 @@ def fetch_kour_files(has_framework = False, has_data_file = False, has_wasm = Fa
 		data_path = re.findall(DATA_REGEX, r.text)[0]
 		data_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(data_path)
 		logger.success('Fetched: Unity WebData path')
-		logger.info(f'Unity WebData path: {data_path}\n')
+		logger.info(f'Unity WebData path: {data_path}')
 
+		logger.info("Fetching: Unity WebData file")
 		data_res = requests.get(data_path)
-		with open(f'{version_path}/kour.data', 'w', encoding='utf8') as f:
+		logger.success('Fetched: Unity WebData file, writing...\n')
+		with open(f'{state["output_dir"]}/kour.data', 'w', encoding='utf8') as f:
 			f.write(data_res.text)
 
 	if not has_wasm:
@@ -72,11 +82,23 @@ def fetch_kour_files(has_framework = False, has_data_file = False, has_wasm = Fa
 		wasm_path = re.findall(WASM_REGEX, r.text)[0]
 		wasm_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(wasm_path)
 		logger.success('Fetched: Web Assembly path')
-		logger.info(f'Web Assembly path: {wasm_path}\n')
+		logger.info(f'Web Assembly path: {wasm_path}')
 
+		logger.info("Fetching: Web Assembly file")
 		wasm_res = requests.get(wasm_path)
-		with open(f'{version_path}/kour.wasm', 'w', encoding='utf8') as f:
+		logger.success('Fetched: Web Assembly file, writing...\n')
+		with open(f'{state["output_dir"]}/kour.wasm', 'w', encoding='utf8') as f:
 			f.write(wasm_res.text)
+
+def get_metadata(data_path):
+	logger.info('Unpacking Unity WebData file')
+
+	output_path = f'{state["output_dir"]}/WebData'
+	os.makedirs(output_path, exist_ok=True)
+	unpacker = UWDTool.UnPacker()
+	unpacker.unpack(data_path, output_path)  # unpacking
+
+	logger.success('Unpacked Unity WebData file')
 
 def main():
 	parser = ArgumentParser(description="A simple program")
@@ -101,8 +123,12 @@ def main():
 	if args.wasm_path and os.path.exists(args.wasm_path):
 		has_wasm = True
 
-	# fetch only the needed values
-	fetch_kour_files(has_framework=has_framework, has_data_file=has_data_file, has_wasm=has_wasm)
+
+	uid = random_string()
+	fetch_kour_files(uid, has_framework=has_framework, has_data_file=has_data_file, has_wasm=has_wasm)
+	logger.success(f'Files saved to: {state["output_dir"]}\n')
+
+	get_metadata(f'{state["output_dir"]}/kour.data')
 
 if __name__ == "__main__":
 	main()
