@@ -3,6 +3,8 @@ import re
 import os
 import random
 import string
+import hashlib
+import brotli
 from logger import Logger
 from argparse import ArgumentParser
 from uwdtool import UWDTool
@@ -20,6 +22,9 @@ FRAMEWORK_REGEX = r'\"\/[a-zA-Z0-9]+.js.br\"'
 DATA_REGEX = r'\"\/[a-zA-Z0-9]+\.data\.br\"'
 WASM_REGEX = r'\"\/[a-zA-Z0-9]+.wasm.br\"'
 CHAR_LIST = string.ascii_letters + string.digits
+
+def hash_file(bytes):
+	return hashlib.sha256(bytes).hexdigest()
 
 def random_string(length = 8):
 	return ''.join([random.choice(CHAR_LIST) for i in range(length)])
@@ -39,14 +44,12 @@ def fetch_kour_files(uid, has_framework = False, has_data_file = False, has_wasm
 	logger.info('Fetching: Game version')
 	version = remove_wrapped_quotes(re.findall(VERSION_REGEX, r.text)[0]).split('"')[1]
 	state['version'] = version
-	logger.success('Fetched: Game version')
-	logger.info(f'Version: {version}\n')
+	logger.success(f'Fetched: Game version (v{version})\n')
 
 	logger.info("Fetching: Build URL")
 	build_url = re.findall(BUILD_REGEX, r.text)[0]
 	build_url = remove_wrapped_quotes(build_url.split('" : ')[1])
-	logger.success('Fetched: Build URL')
-	logger.info(f'Build URL: https://kour.io/{build_url}\n')
+	logger.success(f'Fetched: Build URL (https://kour.io/{build_url}\n')
 
 	state['output_dir'] = f'output/v{version} ({uid})'
 	os.makedirs(state['output_dir'], exist_ok=True)
@@ -55,8 +58,7 @@ def fetch_kour_files(uid, has_framework = False, has_data_file = False, has_wasm
 		logger.info("Fetching: Framework Path")
 		framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
 		framework_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(framework_path)
-		logger.success('Fetched: Framework Path')
-		logger.info(f'Framework Path: {framework_path}')
+		logger.success(f'Fetched: Framework Path ({framework_path})')
 
 		logger.info("Fetching: Actual framework file")
 		framework_res = requests.get(framework_path)
@@ -64,12 +66,14 @@ def fetch_kour_files(uid, has_framework = False, has_data_file = False, has_wasm
 		with open(f'{state["output_dir"]}/framework.js', 'w', encoding='utf8') as f:
 			f.write(framework_res.text)
 
+		with open(f'{state["output_dir"]}/framework.js.sha256', 'w') as f:
+			f.write(hash_file(framework_res.content))
+
 	if not has_data_file:
 		logger.info("Fetching: Unity WebData path")
 		data_path = re.findall(DATA_REGEX, r.text)[0]
 		data_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(data_path)
-		logger.success('Fetched: Unity WebData path')
-		logger.info(f'Unity WebData path: {data_path}')
+		logger.success(f'Fetched: Unity WebData path ({data_path})')
 
 		logger.info("Fetching: Unity WebData file")
 		data_res = requests.get(data_path)
@@ -77,18 +81,23 @@ def fetch_kour_files(uid, has_framework = False, has_data_file = False, has_wasm
 		with open(f'{state["output_dir"]}/kour.data', 'w', encoding='utf8') as f:
 			f.write(data_res.text)
 
+		with open(f'{state["output_dir"]}/kour.data.sha256', 'w') as f:
+			f.write(hash_file(data_res.content))
+
 	if not has_wasm:
 		logger.info("Fetching: Web Assembly path")
 		wasm_path = re.findall(WASM_REGEX, r.text)[0]
 		wasm_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(wasm_path)
-		logger.success('Fetched: Web Assembly path')
-		logger.info(f'Web Assembly path: {wasm_path}')
+		logger.success('Fetched: Web Assembly path ({wasm_path})\n')
 
 		logger.info("Fetching: Web Assembly file")
 		wasm_res = requests.get(wasm_path)
 		logger.success('Fetched: Web Assembly file, writing...\n')
 		with open(f'{state["output_dir"]}/kour.wasm', 'w', encoding='utf8') as f:
 			f.write(wasm_res.text)
+
+		with open(f'{state["output_dir"]}/kour.wasm.sha256', 'w') as f:
+			f.write(hash_file(wasm_res.content))
 
 def get_metadata(data_path):
 	logger.info('Unpacking Unity WebData file')
