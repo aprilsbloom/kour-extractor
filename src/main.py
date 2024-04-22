@@ -164,9 +164,10 @@ def run_cpp2il():
 
 	# cpp2il base state
 	cpp2il_path = "resources/Cpp2IL" if system_name == "posix" else "resources/cpp2il/Cpp2IL.exe"
+	processors = ["attributeanalyzer", "attributeinjector", "callanalyzer", "nativemethoddetector", "stablenamer"]
 	cpp2il_args = [
 		"--verbose",
-		"--use-processor", "attributeanalyzer,attributeinjector,callanalyzer,nativemethoddetector",
+		"--use-processor", ','.join(processors),
 		"--wasm-framework-file", f'{state["output_dir"]}/framework.js',
 		"--force-binary-path", f'{state["output_dir"]}/kour.wasm',
 		"--force-metadata-path", f'{state["output_dir"]}/WebData/Il2CppData/Metadata/global-metadata.dat',
@@ -188,7 +189,24 @@ def run_cpp2il():
 		'--output-as', 'wasmmappings'
 	])
 
-	# isil
+	# fixing the wasm mappings by splitting them into individual files
+	os.makedirs(f'{state["output_dir"]}/CPP2IL/WASM Mappings', exist_ok=True)
+	with open(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt', 'r') as f:
+		mappings = f.read()
+		mappings = mappings.replace('.dll\n\n', '.dll\n').split('\n\n\n')
+
+		for mapping in mappings:
+			split = mapping.split('\n')
+			if len(split) == 1:
+				continue
+
+			dll_name = os.path.splitext(split[0])[0]
+			with open(f'{state["output_dir"]}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
+				f.write('\n'.join(split[1:]))
+
+	os.remove(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt')
+
+	# isil dump
 	subprocess.run([
 		cpp2il_path,
 		*cpp2il_args,
