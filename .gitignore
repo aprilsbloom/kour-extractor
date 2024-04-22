@@ -1,4 +1,11 @@
+# Python
 __pycache__/
 *.py[cod]
 .venv/
+
+
+# Extracted Kour files
 output/
+
+# Utilities
+resources/
