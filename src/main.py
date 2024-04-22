@@ -26,8 +26,8 @@ def hash_file(bytes):
 	return hashlib.sha256(bytes).hexdigest()
 
 
-def random_string(length=8):
-	return "".join([random.choice(CHAR_LIST) for i in range(length)])
+def random_string(length=5):
+	return "".join([random.choice(CHAR_LIST) for i in range(length)]).upper()
 
 
 def remove_wrapped_quotes(str):
