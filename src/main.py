@@ -56,12 +56,18 @@ def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=Fal
 	state["output_dir"] = f"output/v{version} ({uid})"
 	os.makedirs(state["output_dir"], exist_ok=True)
 
+	# this may be redundant since it's in the folder name lol, but ur call to whoever is reading this
+	with open(f'{state["output_dir"]}/version.txt', "w") as f:
+		f.write(version)
+
+	with open(f'{state["output_dir"]}/index.html', "w") as f:
+		f.write(r.text)
+
+
 	if not has_framework:
 		logger.info("Fetching: Framework Path")
 		framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
-		framework_path = (
-			BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(framework_path)
-		)
+		framework_path = (BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(framework_path))
 		logger.success(f"Fetched: Framework Path ({framework_path})")
 
 		logger.info("Fetching: Actual framework file")
