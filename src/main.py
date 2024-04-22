@@ -214,14 +214,14 @@ def main():
 	if args.wasm_path and os.path.exists(args.wasm_path):
 		has_wasm = True
 
-	state["output_dir"] = "output/good"
+	# fetch needed files
+	uid = random_string()
+	fetch_kour_files(uid, has_framework=has_framework, has_data_file=has_data_file, has_wasm=has_wasm)
+	logger.success(f'Files saved to: {state["output_dir"]}\n')
+
+	# extract data we want
+	extract_webdata(f'{state["output_dir"]}/kour.data')
 	run_cpp2il()
-	# uid = random_string()
-	# fetch_kour_files(uid, has_framework=has_framework, has_data_file=has_data_file, has_wasm=has_wasm)
-	# logger.success(f'Files saved to: {state["output_dir"]}\n')
-
-	# extract_webdata(f'{state["output_dir"]}/kour.data')
-
 
 if __name__ == "__main__":
 	main()
