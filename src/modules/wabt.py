@@ -25,6 +25,8 @@ def ensure_downloaded():
 	# check to see if wabt exists in the resources folder
 	os.makedirs("resources", exist_ok=True)
 	if not os.path.exists('resources/wabt'):
+		logger.info('Downloading WABT')
+
 		# fetch latest release
 		r = requests.get(WASM_REPO)
 		assets = r.json().get('assets', [])
@@ -60,6 +62,8 @@ def ensure_downloaded():
 				# make all files in the wabt directory executable when on linux
 				if os.name == 'posix':
 					os.system('chmod +x resources/wabt/*')
+
+		logger.success('WABT downloaded!\n')
 
 
 

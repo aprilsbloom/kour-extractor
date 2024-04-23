@@ -63,7 +63,7 @@ def ensure_downloaded():
 			else:
 				zip_ref.extractall("resources")
 
-		logger.success("Extracted cpp2il!")
+		logger.success("Extracted cpp2il!\n")
 		os.remove("resources/cpp2il.zip")
 
 		# ensure file is executable

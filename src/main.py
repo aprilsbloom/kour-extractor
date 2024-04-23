@@ -59,7 +59,7 @@ def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=Fal
 	with open(f'{state["output_dir"]}/version.txt', "w") as f:
 		f.write(version)
 
-	with open(f'{state["output_dir"]}/index.html', "w") as f:
+	with open(f'{state["output_dir"]}/index.html', "w", encoding='utf8') as f:
 		f.write(r.text)
 
 
