@@ -4,13 +4,10 @@ import os
 import random
 import string
 import hashlib
-import zipfile
-import subprocess
-import tarfile
-import shutil
 from logger import Logger
 from argparse import ArgumentParser
 from uwdtool import UWDTool
+from modules import run_cpp2il, run_wasmtoolkit
 
 logger = Logger()
 state = {"version": "", "output_dir": ""}
@@ -123,198 +120,6 @@ def extract_webdata(data_path):
 
 	logger.success("Unpacked Unity WebData file\n")
 
-
-def run_cpp2il():
-	system_name = os.name
-
-	# setup resources folder (just incase)
-	os.makedirs("resources", exist_ok=True)
-
-	# download cpp2il if it hasn't been downloaded already
-	if (system_name == "nt" and not os.path.exists("resources/cpp2il/Cpp2IL.exe")) or (system_name == "posix" and not os.path.exists("resources/Cpp2IL")):
-		logger.info("Downloading cpp2il!")
-
-		# fetch the latest cpp2il release (nightly build)
-		if system_name == "nt":
-			r = requests.get("https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-Netframework472-Windows.zip")
-		elif system_name == "posix":
-			r = requests.get("https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-net7-linux-x64.zip")
-		else:
-			logger.error("Unsupported OS! Cannot download CPP2IL.")
-			return exit(1)
-
-		with open("resources/cpp2il.zip", "wb") as f:
-			f.write(r.content)
-
-		logger.success("Downloaded cpp2il!")
-
-		# extract the zip file
-		logger.info("Extracting cpp2il")
-		with zipfile.ZipFile("resources/cpp2il.zip", "r") as zip_ref:
-			if system_name == "nt":
-				os.makedirs("resources/cpp2il", exist_ok=True)
-				zip_ref.extractall("resources/cpp2il")
-			else:
-				zip_ref.extractall("resources")
-
-		logger.success("Extracted cpp2il!")
-		os.remove("resources/cpp2il.zip")
-
-		# ensure file is executable
-		if system_name == "posix":
-			os.system("chmod +x resources/Cpp2IL")
-
-	# cpp2il base state
-	cpp2il_path = "resources/Cpp2IL" if system_name == "posix" else "resources/cpp2il/Cpp2IL.exe"
-	processors = ["attributeanalyzer", "attributeinjector", "callanalyzer", "nativemethoddetector", "stablenamer"]
-	cpp2il_args = [
-		"--verbose",
-		"--use-processor", ','.join(processors),
-		"--wasm-framework-file", f'{state["output_dir"]}/framework.js',
-		"--force-binary-path", f'{state["output_dir"]}/kour.wasm',
-		"--force-metadata-path", f'{state["output_dir"]}/WebData/Il2CppData/Metadata/global-metadata.dat',
-		"--force-unity-version", "2023.2.5",
-		"--output-to", f'{state["output_dir"]}/CPP2IL',
-	]
-
-	# diffable cs
-	logger.info('Generating Diffable C# files')
-	diffable_output = subprocess.run([
-		cpp2il_path,
-		*cpp2il_args,
-		'--output-as', 'diffable-cs'
-	], capture_output=True)
-
-	if diffable_output.returncode != 0:
-		logger.error('An error likely occurred during the generation of diffable-cs files.\n')
-		print(diffable_output.stderr.decode('utf-8').splitlines()[-15:])
-	else:
-		logger.success('Diffable C# files generated!\n')
-
-
-	# wasm mappings
-	logger.info('Generating WASM mappings')
-	wasmmap_output = subprocess.run([
-		cpp2il_path,
-		*cpp2il_args,
-		'--output-as', 'wasmmappings'
-	], capture_output=True)
-
-	if wasmmap_output.returncode != 0:
-		logger.error('An error likely occurred during the generation of wasm mappings.\n')
-		print(wasmmap_output.stderr.decode('utf-8').splitlines()[-15:])
-	else:
-		logger.success('WASM mappings generated!\n')
-
-
-	# fixing the wasm mappings by splitting them into individual files
-	logger.info('Splitting WASM mappings into individual files')
-	os.makedirs(f'{state["output_dir"]}/CPP2IL/WASM Mappings', exist_ok=True)
-	if os.path.exists(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt'):
-		with open(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt', 'r') as f:
-			mappings = f.read()
-			mappings = mappings.replace('.dll\n\n', '.dll\n').split('\n\n\n')
-
-			for mapping in mappings:
-				split = mapping.split('\n')
-				if len(split) == 1:
-					continue
-
-				dll_name = os.path.splitext(split[0])[0]
-				with open(f'{state["output_dir"]}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
-					f.write('\n'.join(split[1:]))
-
-		os.remove(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt')
-
-	logger.success('Finished fixing WASM mappings!\n')
-
-
-	# isil dump
-	# subprocess.run([
-	# 	cpp2il_path,
-	# 	*cpp2il_args,
-	# 	'--output-as', 'isil'
-	# ])
-
-def run_wasmtoolkit():
-	# check to see if wabt exists in the resources folder
-	os.makedirs("resources", exist_ok=True)
-	if not os.path.exists('resources/wabt'):
-		# fetch latest release
-		r = requests.get('https://api.github.com/repos/WebAssembly/wabt/releases/latest')
-		assets = r.json().get('assets', [])
-		if len(assets) == 0:
-			raise Exception("No assets found!")
-
-		# go through each asset and check if it matches the current system
-		system_name = 'ubuntu' if os.name == 'posix' else 'windows'
-		for asset in assets:
-			asset_name = asset.get('name', '')
-
-			# check to see if the asset is for the current system (and isn't a sha256 file)
-			if system_name in asset_name and '.sha256' not in asset_name:
-				asset_url = asset.get('browser_download_url')
-				asset_res = requests.get(asset_url)
-				with open('wabt.tar.gz', 'wb') as f:
-					f.write(asset_res.content)
-
-				# extract the tar.gz
-				try:
-					with tarfile.open('wabt.tar.gz', 'r:gz') as f:
-						f.extractall('resources/wabt/')
-				except tarfile.ReadError: # this just happens??? idfk why but it still extracts perfectly fine lol its so weird
-					pass
-
-				# move the bin folder to the root directory & remove redundant files
-				shutil.move('resources/wabt/wabt-1.0.34/bin', 'resources/')
-				shutil.rmtree('resources/wabt')
-
-				os.rename('resources/bin', 'resources/wabt')
-				os.remove('wabt.tar.gz')
-
-				# make all files in the wabt directory executable when on linux
-				if os.name == 'posix':
-					os.system('chmod +x resources/wabt/*')
-
-
-	# base state
-	wabt_args = [
-		f'{state["output_dir"]}/kour.wasm',
-		'--enable-all',
-	]
-
-
-	# run wasm2wat
-	logger.info('WABT: Running wasm2wat (this may take a while)')
-	wasm2wat_path = 'resources/wabt/wasm2wat' if os.name == 'posix' else 'resources/wabt/wasm2wat.exe'
-	wasm2wat_output = subprocess.run([
-		wasm2wat_path,
-		*wabt_args,
-		'--output', f'{state["output_dir"]}/kour.wasm.wat'
-	], capture_output=True)
-
-	if wasm2wat_output.returncode != 0:
-		logger.error('An error likely occurred during the generation of kour.wasm.wat.\n')
-		print(wasm2wat_output.stderr.decode('utf-8').splitlines()[-15:])
-	else:
-		logger.success('kour.wasm.wat generated!\n')
-
-
-	# run wasm-decompile
-	logger.info('WABT: Running wasm-decompile (this may take a while)')
-	wasm_decompile_path = 'resources/wabt/wasm-decompile' if os.name == 'posix' else 'resources/wabt/wasm-decompile.exe'
-	wasm_decomp_output = subprocess.run([
-		wasm_decompile_path,
-		*wabt_args,
-		'--output', f'{state["output_dir"]}/kour.wasm.dcmp'
-	])
-
-	if wasm_decomp_output.returncode != 0:
-		logger.error('An error likely occurred during wasm decompilation.\n')
-		print(wasm_decomp_output.stderr.decode('utf-8').splitlines()[-15:])
-	else:
-		logger.success('WASM decompiled!\n')
-
 def main():
 	parser = ArgumentParser(description="A simple program")
 
@@ -345,8 +150,8 @@ def main():
 
 	# extract data we want
 	extract_webdata(f'{state["output_dir"]}/kour.data')
-	run_cpp2il()
-	run_wasmtoolkit()
+	run_cpp2il(state)
+	run_wasmtoolkit(state)
 
 if __name__ == "__main__":
 	main()

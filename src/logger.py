@@ -20,6 +20,9 @@ colors: dict[Color, str] = {
 class Logger():
 	RESET: Final[str] = '\033[0m'
 
+	def __init__(self, name: str = 'MAIN'):
+		self.name = name
+
 	@staticmethod
 	def fetchTime(format: str = '[%H:%M:%S]') -> str:
 		"""
@@ -64,7 +67,7 @@ class Logger():
 	) -> None:
 		color = self.hexToAnsi(colors[_color], True)
 		date = self.fetchTime()
-		print(f'{date} {color} {self.RESET}', end=' ')
+		print(f'{date} {color} {self.RESET} [{self.name}]', end=' ')
 		for arg in args:
 			if isinstance(arg, str): # we want to print strings on the same line as the main text, and anything else below
 				print(arg)
