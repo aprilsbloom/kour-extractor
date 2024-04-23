@@ -121,7 +121,7 @@ def extract_webdata(data_path):
 	unpacker = UWDTool.UnPacker()
 	unpacker.unpack(data_path, output_path)  # unpacking
 
-	logger.success("Unpacked Unity WebData file")
+	logger.success("Unpacked Unity WebData file\n")
 
 
 def run_cpp2il():
@@ -178,42 +178,63 @@ def run_cpp2il():
 	]
 
 	# diffable cs
-	subprocess.run([
+	logger.info('Generating Diffable C# files')
+	diffable_output = subprocess.run([
 		cpp2il_path,
 		*cpp2il_args,
 		'--output-as', 'diffable-cs'
-	])
+	], capture_output=True)
+
+	if diffable_output.returncode != 0:
+		logger.error('An error likely occurred during the generation of diffable-cs files.\n')
+		print(diffable_output.stderr.decode('utf-8').splitlines()[-15:])
+	else:
+		logger.success('Diffable C# files generated!\n')
+
 
 	# wasm mappings
-	subprocess.run([
+	logger.info('Generating WASM mappings')
+	wasmmap_output = subprocess.run([
 		cpp2il_path,
 		*cpp2il_args,
 		'--output-as', 'wasmmappings'
-	])
+	], capture_output=True)
+
+	if wasmmap_output.returncode != 0:
+		logger.error('An error likely occurred during the generation of wasm mappings.\n')
+		print(wasmmap_output.stderr.decode('utf-8').splitlines()[-15:])
+	else:
+		logger.success('WASM mappings generated!\n')
+
 
 	# fixing the wasm mappings by splitting them into individual files
+	logger.info('Splitting WASM mappings into individual files')
 	os.makedirs(f'{state["output_dir"]}/CPP2IL/WASM Mappings', exist_ok=True)
-	with open(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt', 'r') as f:
-		mappings = f.read()
-		mappings = mappings.replace('.dll\n\n', '.dll\n').split('\n\n\n')
+	if os.path.exists(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt'):
+		with open(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt', 'r') as f:
+			mappings = f.read()
+			mappings = mappings.replace('.dll\n\n', '.dll\n').split('\n\n\n')
 
-		for mapping in mappings:
-			split = mapping.split('\n')
-			if len(split) == 1:
-				continue
+			for mapping in mappings:
+				split = mapping.split('\n')
+				if len(split) == 1:
+					continue
 
-			dll_name = os.path.splitext(split[0])[0]
-			with open(f'{state["output_dir"]}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
-				f.write('\n'.join(split[1:]))
+				dll_name = os.path.splitext(split[0])[0]
+				with open(f'{state["output_dir"]}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
+					f.write('\n'.join(split[1:]))
 
-	os.remove(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt')
+		os.remove(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt')
+
+	logger.success('Finished fixing WASM mappings!\n')
+
 
 	# isil dump
-	subprocess.run([
-		cpp2il_path,
-		*cpp2il_args,
-		'--output-as', 'isil'
-	])
+	# subprocess.run([
+	# 	cpp2il_path,
+	# 	*cpp2il_args,
+	# 	'--output-as', 'isil'
+	# ])
 
 def run_wasmtoolkit():
 	# check to see if wabt exists in the resources folder
@@ -255,29 +276,44 @@ def run_wasmtoolkit():
 				if os.name == 'posix':
 					os.system('chmod +x resources/wabt/*')
 
+
 	# base state
 	wabt_args = [
 		f'{state["output_dir"]}/kour.wasm',
 		'--enable-all',
 	]
 
+
 	# run wasm2wat
 	logger.info('WABT: Running wasm2wat (this may take a while)')
 	wasm2wat_path = 'resources/wabt/wasm2wat' if os.name == 'posix' else 'resources/wabt/wasm2wat.exe'
-	subprocess.run([
+	wasm2wat_output = subprocess.run([
 		wasm2wat_path,
 		*wabt_args,
-		'--output', f'{state["output_dir"]}/kour.wat'
-	])
+		'--output', f'{state["output_dir"]}/kour.wasm.wat'
+	], capture_output=True)
+
+	if wasm2wat_output.returncode != 0:
+		logger.error('An error likely occurred during the generation of kour.wasm.wat.\n')
+		print(wasm2wat_output.stderr.decode('utf-8').splitlines()[-15:])
+	else:
+		logger.success('kour.wasm.wat generated!\n')
+
 
 	# run wasm-decompile
 	logger.info('WABT: Running wasm-decompile (this may take a while)')
 	wasm_decompile_path = 'resources/wabt/wasm-decompile' if os.name == 'posix' else 'resources/wabt/wasm-decompile.exe'
-	subprocess.run([
+	wasm_decomp_output = subprocess.run([
 		wasm_decompile_path,
 		*wabt_args,
 		'--output', f'{state["output_dir"]}/kour.wasm.dcmp'
 	])
+
+	if wasm_decomp_output.returncode != 0:
+		logger.error('An error likely occurred during wasm decompilation.\n')
+		print(wasm_decomp_output.stderr.decode('utf-8').splitlines()[-15:])
+	else:
+		logger.success('WASM decompiled!\n')
 
 def main():
 	parser = ArgumentParser(description="A simple program")
