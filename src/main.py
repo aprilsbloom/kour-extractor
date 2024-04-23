@@ -59,8 +59,8 @@ def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=Fal
 	with open(f'{state["output_dir"]}/version.txt', "w") as f:
 		f.write(version)
 
-	with open(f'{state["output_dir"]}/index.html', "w") as f:
-		f.write(r.text)
+	with open(f'{state["output_dir"]}/index.html', "w", encoding='utf8') as f:
+		f.write(r.text) # they have this weird double newline shit, you can just call .replace('\r', '').replace('\n\n', '\n') at the end of this and it fixes it
 
 
 	if not has_framework:
@@ -87,10 +87,10 @@ def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=Fal
 		logger.info("Fetching: Unity WebData file")
 		data_res = requests.get(data_path)
 		logger.success("Fetched: Unity WebData file, writing...\n")
-		with open(f'{state["output_dir"]}/kour.data', "wb") as f:
+		with open(f'{state["output_dir"]}/web.data', "wb") as f:
 			f.write(data_res.content)
 
-		# with open(f'{state["output_dir"]}/kour.data.sha256', 'w') as f:
+		# with open(f'{state["output_dir"]}/web.data.sha256', 'w') as f:
 		# 	f.write(hash_file(data_res.content))
 
 	if not has_wasm:
@@ -102,10 +102,10 @@ def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=Fal
 		logger.info("Fetching: Web Assembly file")
 		wasm_res = requests.get(wasm_path)
 		logger.success("Fetched: Web Assembly file, writing...\n")
-		with open(f'{state["output_dir"]}/kour.wasm', "wb") as f:
+		with open(f'{state["output_dir"]}/game.wasm', "wb") as f:
 			f.write(wasm_res.content)
 
-		# with open(f'{state["output_dir"]}/kour.wasm.sha256', 'w') as f:
+		# with open(f'{state["output_dir"]}/game.wasm.sha256', 'w') as f:
 		# 	f.write(hash_file(wasm_res.content))
 
 
@@ -150,7 +150,7 @@ def main():
 	logger.success(f'Files saved to: {state["output_dir"]}\n')
 
 	# extract data we want
-	# extract_webdata(f'{state["output_dir"]}/kour.data')
+	# extract_webdata(f'{state["output_dir"]}/web.data')
 	run_cpp2il(state)
 	# run_wasmtoolkit(state)
 
