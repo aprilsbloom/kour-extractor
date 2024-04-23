@@ -72,6 +72,7 @@ def wasm2wat(state: dict, args: List[str]):
 		'--output', f'{state["output_dir"]}/kour.wasm.wat'
 	], capture_output=True)
 
+	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:
 		logger.error('An error likely occurred during the generation of kour.wasm.wat.\n')
 		print(output.stderr.decode('utf-8').splitlines()[-15:])
@@ -87,6 +88,7 @@ def wasm_decompile(state: dict, args: List[str]):
 		'--output', f'{state["output_dir"]}/kour.wasm.dcmp'
 	])
 
+	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:
 		logger.error('An error likely occurred during wasm decompilation.\n')
 		print(output.stderr.decode('utf-8').splitlines()[-15:])

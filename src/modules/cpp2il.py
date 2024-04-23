@@ -78,6 +78,7 @@ def diffable_cs(path: str, args: List[str]):
 		'--output-as', 'diffable-cs'
 	], capture_output=True)
 
+	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:
 		logger.error('An error likely occurred during the generation of diffable-cs files.\n')
 		print(output.stderr.decode('utf-8').splitlines()[-15:])
@@ -92,6 +93,7 @@ def wasm_mappings(state: dict, path: str, args: List[str]):
 		'--output-as', 'wasmmappings'
 	], capture_output=True)
 
+	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:
 		logger.error('An error likely occurred during the generation of wasm mappings.\n')
 		print(output.stderr.decode('utf-8').splitlines()[-15:])
@@ -100,21 +102,24 @@ def wasm_mappings(state: dict, path: str, args: List[str]):
 
 
 	# fixing the wasm mappings by splitting them into individual files
+	# this is because cpp2il returns it into a single file, for some reason??
+	# it's split by comments saying the current dll name, so we can just split by that & don't write empty ones
 	logger.info('Splitting WASM mappings into individual files')
 	os.makedirs(f'{state["output_dir"]}/CPP2IL/WASM Mappings', exist_ok=True)
+
 	if os.path.exists(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt'):
 		with open(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt', 'r') as f:
 			mappings = f.read()
-			mappings = mappings.replace('.dll\n\n', '.dll\n').split('\n\n\n')
+			mappings = mappings.replace('.dll\n\n', '.dll\n').split('\n\n\n') # just a way to get the list of mappings due to how its formatted
 
-			for mapping in mappings:
-				split = mapping.split('\n')
-				if len(split) == 1:
+			for dll in mappings:
+				methods = dll.split('\n') # split it per newline to get all methods
+				if len(methods) == 1:
 					continue
 
-				dll_name = os.path.splitext(split[0])[0]
-				with open(f'{state["output_dir"]}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
-					f.write('\n'.join(split[1:]))
+				name = os.path.splitext(methods[0])[0] # get dll name (w/o extension)
+				with open(f'{state["output_dir"]}/CPP2IL/WASM Mappings/{name}.txt', 'w') as f:
+					f.write('\n'.join(methods[1:]))
 
 		os.remove(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt')
 
