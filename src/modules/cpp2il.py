@@ -20,7 +20,7 @@ def run_cpp2il(state: dict):
 		"--verbose",
 		"--use-processor", ','.join(processors),
 		"--wasm-framework-file", f'{state["output_dir"]}/framework.js',
-		"--force-binary-path", f'{state["output_dir"]}/kour.wasm',
+		"--force-binary-path", f'{state["output_dir"]}/game.wasm',
 		"--force-metadata-path", f'{state["output_dir"]}/WebData/Il2CppData/Metadata/global-metadata.dat',
 		"--force-unity-version", "2023.2.5",
 		"--output-to", f'{state["output_dir"]}/CPP2IL',

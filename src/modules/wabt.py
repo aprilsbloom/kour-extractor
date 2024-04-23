@@ -13,7 +13,7 @@ def run_wasmtoolkit(state: dict):
 	# base state
 	ensure_downloaded()
 	args = [
-		f'{state["output_dir"]}/kour.wasm',
+		f'{state["output_dir"]}/game.wasm',
 		'--enable-all',
 	]
 
@@ -74,15 +74,15 @@ def wasm2wat(state: dict, args: List[str]):
 	output = subprocess.run([
 		path,
 		*args,
-		'--output', f'{state["output_dir"]}/kour.wasm.wat'
+		'--output', f'{state["output_dir"]}/game.wat'
 	], capture_output=True)
 
 	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:
-		logger.error('An error likely occurred during the generation of kour.wasm.wat.\n')
+		logger.error('An error likely occurred during the generation of game.wat.\n')
 		print(output.stderr.decode('utf-8').splitlines()[-15:])
 	else:
-		logger.success('kour.wasm.wat generated!\n')
+		logger.success('game.wat generated!\n')
 
 def wasm_decompile(state: dict, args: List[str]):
 	logger.info('Running wasm-decompile (this may take a while)')
@@ -90,7 +90,7 @@ def wasm_decompile(state: dict, args: List[str]):
 	output = subprocess.run([
 		path,
 		*args,
-		'--output', f'{state["output_dir"]}/kour.wasm.dcmp'
+		'--output', f'{state["output_dir"]}/game.wasm.dcmp'
 	])
 
 	# if the return code is not 0, an error likely occurred
