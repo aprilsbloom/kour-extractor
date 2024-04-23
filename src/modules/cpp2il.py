@@ -4,8 +4,11 @@ import zipfile
 import requests
 from logger import Logger
 from typing import List
+from enum import Enum
 
 logger = Logger('CPP2IL')
+WINDOWS_LINK = "https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-Netframework472-Windows.zip"
+LINUX_LINK = "https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-net7-linux-x64.zip"
 
 def run_cpp2il(state: dict):
 	system_name = os.name
@@ -40,9 +43,9 @@ def ensure_downloaded():
 
 		# fetch the latest cpp2il release (nightly build)
 		if system_name == "nt":
-			r = requests.get("https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-Netframework472-Windows.zip")
+			r = requests.get(WINDOWS_LINK)
 		elif system_name == "posix":
-			r = requests.get("https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-net7-linux-x64.zip")
+			r = requests.get(LINUX_LINK)
 		else:
 			logger.error("Unsupported OS! Cannot download CPP2IL.")
 			return exit(1)

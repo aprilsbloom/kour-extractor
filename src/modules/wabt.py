@@ -7,6 +7,7 @@ from typing import List
 from logger import Logger
 
 logger = Logger('WABT')
+WASM_REPO = 'https://api.github.com/repos/WebAssembly/wabt/releases/latest'
 
 def run_wasmtoolkit(state: dict):
 	# base state
@@ -25,7 +26,7 @@ def ensure_downloaded():
 	os.makedirs("resources", exist_ok=True)
 	if not os.path.exists('resources/wabt'):
 		# fetch latest release
-		r = requests.get('https://api.github.com/repos/WebAssembly/wabt/releases/latest')
+		r = requests.get(WASM_REPO)
 		assets = r.json().get('assets', [])
 		if len(assets) == 0:
 			raise Exception("No assets found!")
