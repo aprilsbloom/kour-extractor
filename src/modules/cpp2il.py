@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import zipfile
@@ -27,8 +28,9 @@ def run_cpp2il(state: dict):
 	]
 
 
-	diffable_cs(path, args)
-	wasm_mappings(state, path, args)
+	# diffable_cs(path, args)
+	offset_dumper(state, path, args)
+	# wasm_mappings(state, path, args)
 
 def ensure_downloaded():
 	system_name = os.name
@@ -86,6 +88,55 @@ def diffable_cs(path: str, args: List[str]):
 		print(output.stderr.decode('utf-8').splitlines()[-15:])
 	else:
 		logger.success('Diffable C# files generated!\n')
+
+def offset_dumper(state: dict, path: str, args: List[str]):
+	logger.info('Dumping offsets from the Diffable C# files')
+
+	# iterate over all the files in the diffable-cs folder (recursively)
+	allOffsets = {}
+	for root, _, files in os.walk(f'{state["output_dir"]}/CPP2IL/DiffableCs'):
+		for file in files:
+			if not file.endswith('.cs'):
+				continue
+
+
+			# dump offsets from the file
+			# TODO: figure out how to get offsets from an inherited class
+			# TODO: make a merge dictionary function (idk how id deal w double keys but i doubt it'd happen)
+			with open(f'{root}/{file}', 'r') as f:
+				lines = f.readlines()
+				tmpOffsets = {}
+
+				for line in lines:
+					line = line.strip()
+
+					if '//Field offset: ' not in line:
+						continue
+
+					# split line based on spaces and remove unnecessary keywords
+					spaceSplit = line.split(' ')
+					for i in range(len(spaceSplit)):
+						if not len(spaceSplit):
+							break
+
+						if spaceSplit[0] in ['public', 'private', 'protected', 'static', 'readonly', 'internal']:
+							spaceSplit.pop(0)
+
+					# fieldType = spaceSplit[0]
+					fieldName = spaceSplit[1].split(';')[0]
+					fieldOffset = spaceSplit[-1] if '0x' in spaceSplit[-1] else '0'
+					tmpOffsets[fieldName] = int(fieldOffset, 16)
+
+				# check to see if any keys were even added to tmpOffsets
+				if len(tmpOffsets.keys()) == 0:
+					continue
+
+				# assign the offsets to the allOfsets dictionary
+				className = os.path.splitext(file)[0]
+				allOffsets[className] = tmpOffsets
+
+	with open(f'{state["output_dir"]}/CPP2IL/offsets.json', 'w') as f:
+		f.write(json.dumps(allOffsets, indent=4))
 
 def wasm_mappings(state: dict, path: str, args: List[str]):
 	logger.info('Generating WASM mappings')

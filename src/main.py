@@ -145,13 +145,14 @@ def main():
 
 	# fetch needed files
 	uid = random_string()
-	fetch_kour_files(uid, has_framework=has_framework, has_data_file=has_data_file, has_wasm=has_wasm)
+	state['output_dir'] = 'output/v2.41 (YUVC0)'
+	# fetch_kour_files(uid, has_framework=has_framework, has_data_file=has_data_file, has_wasm=has_wasm)
 	logger.success(f'Files saved to: {state["output_dir"]}\n')
 
 	# extract data we want
-	extract_webdata(f'{state["output_dir"]}/kour.data')
+	# extract_webdata(f'{state["output_dir"]}/kour.data')
 	run_cpp2il(state)
-	run_wasmtoolkit(state)
+	# run_wasmtoolkit(state)
 
 if __name__ == "__main__":
 	main()
