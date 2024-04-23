@@ -16,7 +16,7 @@ def run_cpp2il(state: dict):
 	# base state
 	ensure_downloaded()
 	path = "resources/Cpp2IL" if system_name == "posix" else "resources/cpp2il/Cpp2IL.exe"
-	processors = ["attributeanalyzer", "attributeinjector", "callanalyzer", "nativemethoddetector", "stablenamer"]
+	processors = ["attributeanalyzer", "attributeinjector", "callanalyzer", "nativemethoddetector"]
 	args = [
 		"--verbose",
 		"--use-processor", ','.join(processors),
