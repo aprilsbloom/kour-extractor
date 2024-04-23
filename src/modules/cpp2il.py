@@ -4,7 +4,6 @@ import zipfile
 import requests
 from logger import Logger
 from typing import List
-from enum import Enum
 
 logger = Logger('CPP2IL')
 WINDOWS_LINK = "https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-Netframework472-Windows.zip"
