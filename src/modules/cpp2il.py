@@ -4,7 +4,7 @@ import subprocess
 import zipfile
 import requests
 from logger import Logger
-from utils import remove_arr_duplicates, remove_empty_items
+from utils import remove_empty_items
 from typing import List
 
 logger = Logger('CPP2IL')
@@ -90,7 +90,7 @@ def diffable_cs(path: str, args: List[str]):
 	else:
 		logger.success('Diffable C# files generated!\n')
 
-EMPTY_CS_FILE_LENGTH = 2
+EMPTY_CS_FILE_LENGTH = 1 # usually it would be ~3, but since we remove all empty lines it's 1
 def offset_dumper(state: dict, path: str, args: List[str]):
 	logger.info('Dumping offsets from the Diffable C# files')
 
@@ -100,6 +100,7 @@ def offset_dumper(state: dict, path: str, args: List[str]):
 		# get the current DLL name
 		tmproot = root.replace(f'{state["output_dir"]}/CPP2IL/DiffableCs', '')
 		tmproot = remove_empty_items(tmproot.split('/'))
+
 		# if the root is empty, skip it
 		if not tmproot:
 			continue
@@ -110,20 +111,14 @@ def offset_dumper(state: dict, path: str, args: List[str]):
 		if dllName not in allOffsets:
 			allOffsets[dllName] = {}
 
-		if dllName == 'output':
-			print(root, tmproot)
-
 		for file in files:
 			if not file.endswith('.cs'):
 				continue
 
 			# dump offsets from the file
-			# TODO: figure out how to get offsets from an inherited class
-			# TODO: make a merge dictionary function (idk how id deal w double keys but i doubt it'd happen)
 			with open(f'{root}/{file}', 'r') as f:
 				lines = [str(line).strip() for line in f.readlines() if str(line).strip()]
 				if len(lines) == EMPTY_CS_FILE_LENGTH:
-					print('empty', lines)
 					continue
 
 				className = os.path.splitext(file)[0]
@@ -142,6 +137,7 @@ def offset_dumper(state: dict, path: str, args: List[str]):
 
 	with open(f'{state["output_dir"]}/CPP2IL/offsets.json', 'w') as f:
 		f.write(json.dumps(allOffsets, indent=4))
+		logger.success('Offsets dumped!\n')
 
 def process_class(lines: List[str], offsets = {}):
 	if not offsets:
