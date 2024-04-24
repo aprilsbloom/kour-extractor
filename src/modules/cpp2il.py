@@ -150,12 +150,21 @@ def process_class(lines: List[str], offsets = {}):
 
 		# split line based on spaces and remove unnecessary keywords
 		spaceSplit = line.split(' ')
-		for i in range(len(spaceSplit)):
+		pos_keywords = ['public', 'private', 'protected', 'static', 'readonly', 'internal']
+		sec_keywords = ['string']
+		for _ in range(len(spaceSplit)):
 			if not len(spaceSplit):
 				break
 
-			if spaceSplit[0] in ['public', 'private', 'protected', 'static', 'readonly', 'internal']:
+			# remove the first elem if it's a positional keyword
+			if spaceSplit[0] in pos_keywords:
 				spaceSplit.pop(0)
+
+			# remove the second elem if it's a secondary keyword
+			if spaceSplit[0] in sec_keywords:
+				spaceSplit.pop(0)
+			elif spaceSplit[1] in sec_keywords:
+				spaceSplit.pop(1)
 
 		# fieldType = spaceSplit[0]
 		fieldName = spaceSplit[1].split(';')[0]
