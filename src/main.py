@@ -17,7 +17,7 @@ FRAMEWORK_REGEX = r"\"\/[a-zA-Z0-9]+.js.br\""
 DATA_REGEX = r"\"\/[a-zA-Z0-9]+\.data\.br\""
 WASM_REGEX = r"\"\/[a-zA-Z0-9]+.wasm.br\""
 
-def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=False):
+def fetch_kour_files(uid):
 	r = requests.get(BASE_DOMAIN)
 
 	logger.info("Fetching: Game version")
@@ -40,51 +40,50 @@ def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=Fal
 	with open(f'{state["output_dir"]}/index.html', "w", encoding='utf8') as f:
 		f.write(r.text) # they have this weird double newline shit, you can just call .replace('\r', '').replace('\n\n', '\n') at the end of this and it fixes it
 
+	# framework js file
+	logger.info("Fetching: Framework Path")
+	framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
+	framework_path = (BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(framework_path))
+	logger.success(f"Fetched: Framework Path ({framework_path})")
 
-	if not has_framework:
-		logger.info("Fetching: Framework Path")
-		framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
-		framework_path = (BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(framework_path))
-		logger.success(f"Fetched: Framework Path ({framework_path})")
+	logger.info("Fetching: Actual framework file")
+	framework_res = requests.get(framework_path)
+	logger.success("Fetched: Actual framework file, writing...\n")
+	with open(f'{state["output_dir"]}/framework.js', "wb") as f:
+		f.write(framework_res.content)
 
-		logger.info("Fetching: Actual framework file")
-		framework_res = requests.get(framework_path)
-		logger.success("Fetched: Actual framework file, writing...\n")
-		with open(f'{state["output_dir"]}/framework.js', "wb") as f:
-			f.write(framework_res.content)
+	# with open(f'{state["output_dir"]}/framework.js.sha256', 'w') as f:
+	# 	f.write(hash_file(framework_res.content))
 
-		# with open(f'{state["output_dir"]}/framework.js.sha256', 'w') as f:
-		# 	f.write(hash_file(framework_res.content))
+	# webdata file
+	logger.info("Fetching: Unity WebData path")
+	data_path = re.findall(DATA_REGEX, r.text)[0]
+	data_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(data_path)
+	logger.success(f"Fetched: Unity WebData path ({data_path})")
 
-	if not has_data_file:
-		logger.info("Fetching: Unity WebData path")
-		data_path = re.findall(DATA_REGEX, r.text)[0]
-		data_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(data_path)
-		logger.success(f"Fetched: Unity WebData path ({data_path})")
+	logger.info("Fetching: Unity WebData file")
+	data_res = requests.get(data_path)
+	logger.success("Fetched: Unity WebData file, writing...\n")
+	with open(f'{state["output_dir"]}/web.data', "wb") as f:
+		f.write(data_res.content)
 
-		logger.info("Fetching: Unity WebData file")
-		data_res = requests.get(data_path)
-		logger.success("Fetched: Unity WebData file, writing...\n")
-		with open(f'{state["output_dir"]}/web.data', "wb") as f:
-			f.write(data_res.content)
+	# with open(f'{state["output_dir"]}/web.data.sha256', 'w') as f:
+	# 	f.write(hash_file(data_res.content))
 
-		# with open(f'{state["output_dir"]}/web.data.sha256', 'w') as f:
-		# 	f.write(hash_file(data_res.content))
+	# game wasm
+	logger.info("Fetching: Web Assembly path")
+	wasm_path = re.findall(WASM_REGEX, r.text)[0]
+	wasm_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(wasm_path)
+	logger.success(f"Fetched: Web Assembly path ({wasm_path})")
 
-	if not has_wasm:
-		logger.info("Fetching: Web Assembly path")
-		wasm_path = re.findall(WASM_REGEX, r.text)[0]
-		wasm_path = BASE_DOMAIN + "/" + build_url + remove_wrapped_quotes(wasm_path)
-		logger.success(f"Fetched: Web Assembly path ({wasm_path})")
+	logger.info("Fetching: Web Assembly file")
+	wasm_res = requests.get(wasm_path)
+	logger.success("Fetched: Web Assembly file, writing...\n")
+	with open(f'{state["output_dir"]}/game.wasm', "wb") as f:
+		f.write(wasm_res.content)
 
-		logger.info("Fetching: Web Assembly file")
-		wasm_res = requests.get(wasm_path)
-		logger.success("Fetched: Web Assembly file, writing...\n")
-		with open(f'{state["output_dir"]}/game.wasm', "wb") as f:
-			f.write(wasm_res.content)
-
-		# with open(f'{state["output_dir"]}/game.wasm.sha256', 'w') as f:
-		# 	f.write(hash_file(wasm_res.content))
+	# with open(f'{state["output_dir"]}/game.wasm.sha256', 'w') as f:
+	# 	f.write(hash_file(wasm_res.content))
 
 
 def extract_webdata(data_path):
@@ -99,38 +98,18 @@ def extract_webdata(data_path):
 	logger.success("Unpacked Unity WebData file\n")
 
 def main():
-	parser = ArgumentParser(description="A simple program")
-
-	parser.add_argument("--framework_path")
-	parser.add_argument("--data_path")
-	parser.add_argument("--wasm_path")
-
-	args = parser.parse_args()
-
-	# determine if user has passed in paths for the respective files
-	has_framework = False
-	has_data_file = False
-	has_wasm = False
-
-	if args.framework_path and os.path.exists(args.framework_path):
-		has_framework = True
-
-	if args.data_path and os.path.exists(args.data_path):
-		has_data_file = True
-
-	if args.wasm_path and os.path.exists(args.wasm_path):
-		has_wasm = True
+	# parser = ArgumentParser(description="A simple program")
+	# args = parser.parse_args()
 
 	# fetch needed files
 	uid = random_string()
-	state['output_dir'] = 'output/v2.41 (YUVC0)'
-	# fetch_kour_files(uid, has_framework=has_framework, has_data_file=has_data_file, has_wasm=has_wasm)
+	fetch_kour_files(uid)
 	logger.success(f'Files saved to: {state["output_dir"]}\n')
 
 	# extract data we want
-	# extract_webdata(f'{state["output_dir"]}/web.data')
+	extract_webdata(f'{state["output_dir"]}/web.data')
 	run_cpp2il(state)
-	# run_wasmtoolkit(state)
+	run_wasmtoolkit(state)
 
 if __name__ == "__main__":
 	main()

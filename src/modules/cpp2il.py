@@ -29,9 +29,9 @@ def run_cpp2il(state: dict):
 	]
 
 
-	# diffable_cs(path, args)
+	diffable_cs(path, args)
 	offset_dumper(state, path, args)
-	# wasm_mappings(state, path, args)
+	wasm_mappings(state, path, args)
 
 def ensure_downloaded():
 	system_name = os.name
