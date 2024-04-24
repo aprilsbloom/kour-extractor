@@ -1,13 +1,11 @@
 import requests
 import re
 import os
-import random
-import string
-import hashlib
 from logger import Logger
 from argparse import ArgumentParser
 from uwdtool import UWDTool
 from modules import run_cpp2il, run_wasmtoolkit
+from utils import remove_wrapped_quotes, random_string
 
 logger = Logger()
 state = {"version": "", "output_dir": ""}
@@ -18,26 +16,6 @@ BUILD_REGEX = r"var buildUrl = isMobile \? \"[a-zA-Z0-9\/]+\" : \"[a-zA-Z0-9]+\"
 FRAMEWORK_REGEX = r"\"\/[a-zA-Z0-9]+.js.br\""
 DATA_REGEX = r"\"\/[a-zA-Z0-9]+\.data\.br\""
 WASM_REGEX = r"\"\/[a-zA-Z0-9]+.wasm.br\""
-CHAR_LIST = string.ascii_letters + string.digits
-
-
-def hash_file(bytes):
-	return hashlib.sha256(bytes).hexdigest()
-
-
-def random_string(length=5):
-	return "".join([random.choice(CHAR_LIST) for i in range(length)]).upper()
-
-
-def remove_wrapped_quotes(str):
-	if str[0] == '"':
-		str = str[1:]
-
-	if str[-1] == '"':
-		str = str[:-1]
-
-	return str
-
 
 def fetch_kour_files(uid, has_framework=False, has_data_file=False, has_wasm=False):
 	r = requests.get(BASE_DOMAIN)

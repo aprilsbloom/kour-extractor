@@ -4,6 +4,7 @@ import subprocess
 import zipfile
 import requests
 from logger import Logger
+from utils import remove_arr_duplicates, remove_empty_items
 from typing import List
 
 logger = Logger('CPP2IL')
@@ -89,54 +90,84 @@ def diffable_cs(path: str, args: List[str]):
 	else:
 		logger.success('Diffable C# files generated!\n')
 
+EMPTY_CS_FILE_LENGTH = 2
 def offset_dumper(state: dict, path: str, args: List[str]):
 	logger.info('Dumping offsets from the Diffable C# files')
 
 	# iterate over all the files in the diffable-cs folder (recursively)
 	allOffsets = {}
 	for root, _, files in os.walk(f'{state["output_dir"]}/CPP2IL/DiffableCs'):
+		# get the current DLL name
+		tmproot = root.replace(f'{state["output_dir"]}/CPP2IL/DiffableCs', '')
+		tmproot = remove_empty_items(tmproot.split('/'))
+		# if the root is empty, skip it
+		if not tmproot:
+			continue
+
+		# else, continue normally
+		tmproot = tmproot[0].strip()
+		dllName = tmproot
+		if dllName not in allOffsets:
+			allOffsets[dllName] = {}
+
+		if dllName == 'output':
+			print(root, tmproot)
+
 		for file in files:
 			if not file.endswith('.cs'):
 				continue
-
 
 			# dump offsets from the file
 			# TODO: figure out how to get offsets from an inherited class
 			# TODO: make a merge dictionary function (idk how id deal w double keys but i doubt it'd happen)
 			with open(f'{root}/{file}', 'r') as f:
-				lines = f.readlines()
-				tmpOffsets = {}
-
-				for line in lines:
-					line = line.strip()
-
-					if '//Field offset: ' not in line:
-						continue
-
-					# split line based on spaces and remove unnecessary keywords
-					spaceSplit = line.split(' ')
-					for i in range(len(spaceSplit)):
-						if not len(spaceSplit):
-							break
-
-						if spaceSplit[0] in ['public', 'private', 'protected', 'static', 'readonly', 'internal']:
-							spaceSplit.pop(0)
-
-					# fieldType = spaceSplit[0]
-					fieldName = spaceSplit[1].split(';')[0]
-					fieldOffset = spaceSplit[-1] if '0x' in spaceSplit[-1] else '0'
-					tmpOffsets[fieldName] = int(fieldOffset, 16)
-
-				# check to see if any keys were even added to tmpOffsets
-				if len(tmpOffsets.keys()) == 0:
+				lines = [str(line).strip() for line in f.readlines() if str(line).strip()]
+				if len(lines) == EMPTY_CS_FILE_LENGTH:
+					print('empty', lines)
 					continue
 
-				# assign the offsets to the allOfsets dictionary
 				className = os.path.splitext(file)[0]
-				allOffsets[className] = tmpOffsets
+				offsets = process_class(lines)
+
+				# check to see if any keys were even added to the offsets var
+				if len(offsets.keys()) == 0:
+					continue
+
+				allOffsets[dllName][className] = offsets
+
+	# iterate back over allOffsets and remove empty elements
+	for key, value in list(allOffsets.items()):
+		if not value:
+			allOffsets.pop(key)
 
 	with open(f'{state["output_dir"]}/CPP2IL/offsets.json', 'w') as f:
 		f.write(json.dumps(allOffsets, indent=4))
+
+def process_class(lines: List[str], offsets = {}):
+	if not offsets:
+		offsets = {}
+
+	for line in lines:
+		# we only want to check for offsets, not methods or anything
+		if '//Field offset: ' not in line:
+			continue
+
+		# split line based on spaces and remove unnecessary keywords
+		spaceSplit = line.split(' ')
+		for i in range(len(spaceSplit)):
+			if not len(spaceSplit):
+				break
+
+			if spaceSplit[0] in ['public', 'private', 'protected', 'static', 'readonly', 'internal']:
+				spaceSplit.pop(0)
+
+		# fieldType = spaceSplit[0]
+		fieldName = spaceSplit[1].split(';')[0]
+		fieldOffset = spaceSplit[-1] if '0x' in spaceSplit[-1] else '0'
+		offsets[fieldName] = int(fieldOffset, 16)
+
+	return offsets
+
 
 def wasm_mappings(state: dict, path: str, args: List[str]):
 	logger.info('Generating WASM mappings')
