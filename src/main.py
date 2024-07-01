@@ -11,10 +11,11 @@ logger = Logger()
 state = {"version": "", "output_dir": ""}
 
 BASE_DOMAIN = "https://kour.io"
+# BASE_DOMAIN = ""
 VERSION_REGEX = r"productVersion: \"[0-9\.]+\""
-BUILD_REGEX = r"var buildUrl = isMobile \? \"[a-zA-Z0-9\/]+\" : \"[a-zA-Z0-9]+\""
-FRAMEWORK_REGEX = r"\"\/[a-zA-Z0-9]+.js.br\""
-DATA_REGEX = r"\"\/[a-zA-Z0-9]+\.data\.br\""
+BUILD_REGEX = r"var buildUrl = isMobile \? \"[a-zA-Z0-9\/:\-\.]+\" : \"[a-zA-Z0-9\/:\-\.]+\""
+FRAMEWORK_REGEX = r"\"\/.+.js.br\""
+DATA_REGEX = r"\"\/[a-zA-Z0-9]+\.data.br\""
 WASM_REGEX = r"\"\/[a-zA-Z0-9]+.wasm.br\""
 
 def fetch_kour_files(uid):
@@ -39,7 +40,7 @@ def fetch_kour_files(uid):
 
 	with open(f'{state["output_dir"]}/index.html', "w", encoding='utf8') as f:
 		f.write(r.text) # they have this weird double newline shit, you can just call .replace('\r', '').replace('\n\n', '\n') at the end of this and it fixes it
-
+	
 	# framework js file
 	logger.info("Fetching: Framework Path")
 	framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
