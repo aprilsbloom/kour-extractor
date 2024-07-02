@@ -203,6 +203,6 @@ def wasm_mappings(state: dict, path: str, args: List[str]):
 				with open(f'{state["output_dir"]}/CPP2IL/WASM Mappings/{name}.txt', 'w') as f:
 					f.write('\n'.join(methods[1:]))
 
-		os.remove(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt')
+		# os.remove(f'{state["output_dir"]}/CPP2IL/wasm_mappings.txt')
 
 	logger.success('Finished fixing WASM mappings!\n')
