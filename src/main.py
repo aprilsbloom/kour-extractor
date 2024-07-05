@@ -11,24 +11,23 @@ logger = Logger()
 state = {"version": "", "output_dir": ""}
 
 BASE_DOMAIN = "https://kour.io"
-VERSION_REGEX = r"productVersion: \"[0-9\.]+\""
-BUILD_REGEX = r"var buildUrl = isMobile \? \"[a-zA-Z0-9\/:\-\.]+\" : \"[a-zA-Z0-9\/:\-\.]+\""
-FRAMEWORK_REGEX = r"\"\/.+.js.br\""
-DATA_REGEX = r"\"\/[a-zA-Z0-9]+\.data.br\""
-WASM_REGEX = r"\"\/[a-zA-Z0-9]+.wasm.br\""
+VERSION_REGEX = r"productVersion:(?: |)\"([0-9.]+)"
+BUILD_REGEX = r"buildUrl(?: |)=(?: |)(?:[a-zA-Z +\?]+)\"(?:[a-zA-Z:\/\-\.\ ]+)\"(?: |):(?: |)\"([a-zA-Z:\/\-\.\ ]+)"
+FRAMEWORK_REGEX = r"frameworkUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
+DATA_REGEX = r"dataUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
+WASM_REGEX = r"codeUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
 
 def fetch_kour_files(uid):
 	r = requests.get(BASE_DOMAIN)
 
 	logger.info("Fetching: Game version")
-	version = remove_wrapped_quotes(re.findall(VERSION_REGEX, r.text)[0]).split('"')[1]
+	version = re.findall(VERSION_REGEX, r.text)[0]
 	state["version"] = version
 	logger.success(f"Fetched: Game version (v{version})\n")
 
 	logger.info("Fetching: Build URL")
 	build_url = re.findall(BUILD_REGEX, r.text)[0]
-	build_url = remove_wrapped_quotes(build_url.split('" : ')[1])
-	logger.success(f"Fetched: Build URL (https://kour.io/{build_url})\n")
+	logger.success("Fetched: Build URL (build_url)\n")
 
 	state["output_dir"] = f"output/v{version} ({uid})"
 	os.makedirs(state["output_dir"], exist_ok=True)
@@ -42,8 +41,7 @@ def fetch_kour_files(uid):
 
 	# framework js file
 	logger.info("Fetching: Framework Path")
-	framework_path = re.findall(FRAMEWORK_REGEX, r.text)[0]
-	framework_path = (build_url + remove_wrapped_quotes(framework_path))
+	framework_path = build_url + re.findall(FRAMEWORK_REGEX, r.text)[0]
 	logger.success(f"Fetched: Framework Path ({framework_path})")
 
 	logger.info("Fetching: Actual framework file")
@@ -57,8 +55,7 @@ def fetch_kour_files(uid):
 
 	# webdata file
 	logger.info("Fetching: Unity WebData path")
-	data_path = re.findall(DATA_REGEX, r.text)[0]
-	data_path = build_url + remove_wrapped_quotes(data_path)
+	data_path = build_url + re.findall(DATA_REGEX, r.text)[0]
 	logger.success(f"Fetched: Unity WebData path ({data_path})")
 
 	logger.info("Fetching: Unity WebData file")
@@ -72,8 +69,7 @@ def fetch_kour_files(uid):
 
 	# game wasm
 	logger.info("Fetching: Web Assembly path")
-	wasm_path = re.findall(WASM_REGEX, r.text)[0]
-	wasm_path = build_url + remove_wrapped_quotes(wasm_path)
+	wasm_path = build_url + re.findall(WASM_REGEX, r.text)[0]
 	logger.success(f"Fetched: Web Assembly path ({wasm_path})")
 
 	logger.info("Fetching: Web Assembly file")
