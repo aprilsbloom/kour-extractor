@@ -39,6 +39,7 @@ def fetch_kour_files(uid):
 	with open(f'{state["output_dir"]}/index.html', "w", encoding='utf8') as f:
 		f.write(r.text) # they have this weird double newline shit, you can just call .replace('\r', '').replace('\n\n', '\n') at the end of this and it fixes it
 
+
 	# framework js file
 	logger.info("Fetching: Framework Path")
 	framework_path = build_url + re.findall(FRAMEWORK_REGEX, r.text)[0]
@@ -50,8 +51,6 @@ def fetch_kour_files(uid):
 	with open(f'{state["output_dir"]}/framework.js', "wb") as f:
 		f.write(framework_res.content)
 
-	# with open(f'{state["output_dir"]}/framework.js.sha256', 'w') as f:
-	# 	f.write(hash_file(framework_res.content))
 
 	# webdata file
 	logger.info("Fetching: Unity WebData path")
@@ -64,8 +63,6 @@ def fetch_kour_files(uid):
 	with open(f'{state["output_dir"]}/web.data', "wb") as f:
 		f.write(data_res.content)
 
-	# with open(f'{state["output_dir"]}/web.data.sha256', 'w') as f:
-	# 	f.write(hash_file(data_res.content))
 
 	# game wasm
 	logger.info("Fetching: Web Assembly path")
@@ -77,9 +74,6 @@ def fetch_kour_files(uid):
 	logger.success("Fetched: Web Assembly file, writing...\n")
 	with open(f'{state["output_dir"]}/game.wasm', "wb") as f:
 		f.write(wasm_res.content)
-
-	# with open(f'{state["output_dir"]}/game.wasm.sha256', 'w') as f:
-	# 	f.write(hash_file(wasm_res.content))
 
 
 def extract_webdata(data_path):
