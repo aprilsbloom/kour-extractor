@@ -26,47 +26,57 @@ def run_wasmtoolkit(state: dict):
 def ensure_downloaded():
 	# check to see if wabt exists in the resources folder
 	os.makedirs("resources", exist_ok=True)
-	if not os.path.exists('resources/wabt'):
-		logger.info('Downloading WABT')
 
-		# fetch latest release
-		r = requests.get(WABT_REPO)
-		assets = r.json().get('assets', [])
-		if len(assets) == 0:
-			raise Exception("No assets found!")
+	# download wabt if it hasn't been downloaded already
+	if os.path.exists('resources/wabt'):
+		return
 
-		# go through each asset and check if it matches the current system
-		system_name = 'ubuntu' if os.name == 'posix' else 'windows'
-		for asset in assets:
-			asset_name = asset.get('name', '')
+	logger.info('Downloading WABT')
 
-			# check to see if the asset is for the current system (and isn't a sha256 file)
-			if system_name in asset_name and '.sha256' not in asset_name:
-				asset_url = asset.get('browser_download_url')
-				asset_res = requests.get(asset_url)
-				with open('wabt.tar.gz', 'wb') as f:
-					f.write(asset_res.content)
+	# fetch latest release
+	r = requests.get(WABT_REPO)
+	assets = r.json().get('assets', [])
+	if len(assets) == 0:
+		raise Exception("No assets found!")
 
-				# extract the tar.gz
-				try:
-					with tarfile.open('wabt.tar.gz', 'r:gz') as f:
-						f.extractall('resources/wabt/')
-				except tarfile.ReadError: # this just happens??? idfk why but it still extracts perfectly fine lol its so weird
-					pass
+	# go through each asset and check if it matches the current system
+	sys_name = 'ubuntu' if os.name == 'posix' else 'windows'
+	for asset in assets:
+		asset_name = asset.get('name', '')
 
-				# move the bin folder to the root directory & remove redundant files
-				version = re.findall(WABT_VERSION_REGEX, asset_url)[0]
-				shutil.move(f'resources/wabt/wabt-{version}/bin', 'resources/')
-				shutil.rmtree('resources/wabt')
+		# check to see if the asset is for the current system (and isn't a sha256 file)
+		if sys_name not in asset_name:
+			continue
 
-				os.rename('resources/bin', 'resources/wabt')
-				os.remove('wabt.tar.gz')
+		if '.sha256' in asset_name:
+			continue
 
-				# make all files in the wabt directory executable when on linux
-				if os.name == 'posix':
-					os.system('chmod +x resources/wabt/*')
+		# download the asset
+		asset_url = asset.get('browser_download_url')
+		asset_res = requests.get(asset_url)
+		with open('wabt.tar.gz', 'wb') as f:
+			f.write(asset_res.content)
 
-		logger.success('WABT downloaded!\n')
+		# extract the tar archive
+		try:
+			with tarfile.open('wabt.tar.gz', 'r:gz') as f:
+				f.extractall('resources/wabt/')
+		except tarfile.ReadError: # this just happens??? idfk why but it still extracts perfectly fine lol its so weird
+			pass
+
+		# move the bin folder to the root directory & remove redundant files
+		version = re.findall(WABT_VERSION_REGEX, asset_url)[0]
+		shutil.move(f'resources/wabt/wabt-{version}/bin', 'resources/')
+		shutil.rmtree('resources/wabt')
+
+		os.rename('resources/bin', 'resources/wabt')
+		os.remove('wabt.tar.gz')
+
+		# make all files in the wabt directory executable when on linux
+		if sys_name == 'ubuntu':
+			os.system('chmod +x resources/wabt/*')
+
+	logger.success('WABT downloaded!\n')
 
 
 

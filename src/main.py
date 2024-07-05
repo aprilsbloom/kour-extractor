@@ -98,7 +98,7 @@ def main():
 
 	# extract data we want
 	extract_webdata(f'{state["output_dir"]}/web.data')
-	# run_cpp2il(state)
+	run_cpp2il(state)
 	run_wasmtoolkit(state)
 
 if __name__ == "__main__":

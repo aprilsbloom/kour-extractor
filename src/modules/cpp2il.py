@@ -40,38 +40,43 @@ def ensure_downloaded():
 	os.makedirs("resources", exist_ok=True)
 
 	# download cpp2il if it hasn't been downloaded already
-	if (system_name == "nt" and not os.path.exists("resources/cpp2il/Cpp2IL.exe")) or (system_name == "posix" and not os.path.exists("resources/Cpp2IL")):
-		logger.info("Downloading cpp2il!")
+	if (
+		(system_name == "nt" and os.path.exists("resources/cpp2il/Cpp2IL.exe")) or
+		(system_name == "posix" and os.path.exists("resources/Cpp2IL"))
+	):
+		return
 
-		# fetch the latest cpp2il release (nightly build)
+	logger.info("Downloading cpp2il!")
+
+	# fetch the latest cpp2il release (nightly build)
+	if system_name == "nt":
+		r = requests.get(WINDOWS_LINK)
+	elif system_name == "posix":
+		r = requests.get(LINUX_LINK)
+	else:
+		logger.error("Unsupported OS! Cannot download CPP2IL.")
+		return exit(1)
+
+	with open("resources/cpp2il.zip", "wb") as f:
+		f.write(r.content)
+
+	logger.success("Downloaded cpp2il!")
+
+	# extract the zip file
+	logger.info("Extracting cpp2il")
+	with zipfile.ZipFile("resources/cpp2il.zip", "r") as zip_ref:
 		if system_name == "nt":
-			r = requests.get(WINDOWS_LINK)
-		elif system_name == "posix":
-			r = requests.get(LINUX_LINK)
+			os.makedirs("resources/cpp2il", exist_ok=True)
+			zip_ref.extractall("resources/cpp2il")
 		else:
-			logger.error("Unsupported OS! Cannot download CPP2IL.")
-			return exit(1)
+			zip_ref.extractall("resources")
 
-		with open("resources/cpp2il.zip", "wb") as f:
-			f.write(r.content)
+	logger.success("Extracted cpp2il!\n")
+	os.remove("resources/cpp2il.zip")
 
-		logger.success("Downloaded cpp2il!")
-
-		# extract the zip file
-		logger.info("Extracting cpp2il")
-		with zipfile.ZipFile("resources/cpp2il.zip", "r") as zip_ref:
-			if system_name == "nt":
-				os.makedirs("resources/cpp2il", exist_ok=True)
-				zip_ref.extractall("resources/cpp2il")
-			else:
-				zip_ref.extractall("resources")
-
-		logger.success("Extracted cpp2il!\n")
-		os.remove("resources/cpp2il.zip")
-
-		# ensure file is executable
-		if system_name == "posix":
-			os.system("chmod +x resources/Cpp2IL")
+	# ensure file is executable
+	if system_name == "posix":
+		os.system("chmod +x resources/Cpp2IL")
 
 
 # ==== Methods ==== #
