@@ -81,7 +81,7 @@ def diffable_cs(path: str, args: List[str]):
 		path,
 		*args,
 		'--output-as', 'diffable-cs'
-	], capture_output=True)
+	], capture_output=False)
 
 	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:
@@ -173,7 +173,7 @@ def wasm_mappings(state: dict, path: str, args: List[str]):
 		path,
 		*args,
 		'--output-as', 'wasmmappings'
-	], capture_output=True)
+	], capture_output=False)
 
 	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:

@@ -11,7 +11,6 @@ logger = Logger()
 state = {"version": "", "output_dir": ""}
 
 BASE_DOMAIN = "https://kour.io"
-# BASE_DOMAIN = ""
 VERSION_REGEX = r"productVersion: \"[0-9\.]+\""
 BUILD_REGEX = r"var buildUrl = isMobile \? \"[a-zA-Z0-9\/:\-\.]+\" : \"[a-zA-Z0-9\/:\-\.]+\""
 FRAMEWORK_REGEX = r"\"\/.+.js.br\""
@@ -109,7 +108,7 @@ def main():
 
 	# extract data we want
 	extract_webdata(f'{state["output_dir"]}/web.data')
-	run_cpp2il(state)
+	# run_cpp2il(state)
 	run_wasmtoolkit(state)
 
 if __name__ == "__main__":

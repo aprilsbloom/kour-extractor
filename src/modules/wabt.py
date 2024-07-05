@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import tarfile
 import requests
@@ -7,7 +8,8 @@ from typing import List
 from logger import Logger
 
 logger = Logger('WABT')
-WASM_REPO = 'https://api.github.com/repos/WebAssembly/wabt/releases/latest'
+WABT_REPO = 'https://api.github.com/repos/WebAssembly/wabt/releases/latest'
+WABT_VERSION_REGEX = r'download\/([0-9.]+)'
 
 def run_wasmtoolkit(state: dict):
 	# base state
@@ -28,7 +30,7 @@ def ensure_downloaded():
 		logger.info('Downloading WABT')
 
 		# fetch latest release
-		r = requests.get(WASM_REPO)
+		r = requests.get(WABT_REPO)
 		assets = r.json().get('assets', [])
 		if len(assets) == 0:
 			raise Exception("No assets found!")
@@ -53,7 +55,8 @@ def ensure_downloaded():
 					pass
 
 				# move the bin folder to the root directory & remove redundant files
-				shutil.move('resources/wabt/wabt-1.0.34/bin', 'resources/')
+				version = re.findall(WABT_VERSION_REGEX, asset_url)[0]
+				shutil.move(f'resources/wabt/wabt-{version}/bin', 'resources/')
 				shutil.rmtree('resources/wabt')
 
 				os.rename('resources/bin', 'resources/wabt')
@@ -75,7 +78,7 @@ def wasm2wat(state: dict, args: List[str]):
 		path,
 		*args,
 		'--output', f'{state["output_dir"]}/game.wat'
-	], capture_output=True)
+	], capture_output=False)
 
 	# if the return code is not 0, an error likely occurred
 	if output.returncode != 0:
