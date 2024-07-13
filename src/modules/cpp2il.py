@@ -59,7 +59,7 @@ class CPP2IL():
 			os.makedirs(API.cpp2il_path, exist_ok=True)
 			zip.extractall(API.cpp2il_path)
 
-		logger.success("Extracted cpp2il!\n")
+		logger.success("Extracted cpp2il!")
 		os.remove(f"{API.cpp2il_path}/cpp2il.zip")
 
 		# ensure file is executable on linux
@@ -77,9 +77,9 @@ class CPP2IL():
 
 		# error handling
 		if output.returncode == 0:
-			logger.success('Diffable C# files generated!\n')
+			logger.success('Diffable C# files generated!')
 		else:
-			logger.error('An error likely occurred during the generation of diffable-cs files.\n')
+			logger.error('An error likely occurred during the generation of diffable-cs files.')
 			if (output.stderr):
 				print(output.stderr.decode('utf-8').splitlines()[-15:])
 
@@ -93,11 +93,14 @@ class CPP2IL():
 
 		# error handling
 		if output.returncode == 0:
-			logger.success('WASM mappings generated!\n')
+			logger.success('WASM mappings generated!')
 		else:
-			logger.error('An error likely occurred during the generation of the WASM Mappings.\n')
+			logger.error('An error likely occurred during the generation of the WASM Mappings.')
 			if (output.stderr):
 				print(output.stderr.decode('utf-8').splitlines()[-15:])
+
+		if not os.path.exists(f'{API.path}/CPP2IL/wasm_mappings.txt'):
+			return
 
 		# fixing the wasm mappings by splitting them into individual files
 		# this is because cpp2il returns it into a single file for some reason??
@@ -105,26 +108,25 @@ class CPP2IL():
 		logger.info('Splitting WASM mappings into individual files')
 		os.makedirs(f'{API.path}/CPP2IL/WASM Mappings', exist_ok=True)
 
-		if os.path.exists(f'{API.path}/CPP2IL/wasm_mappings.txt'):
-			with open(f'{API.path}/CPP2IL/wasm_mappings.txt', 'r') as f:
-				mappings = f.read()
+		with open(f'{API.path}/CPP2IL/wasm_mappings.txt', 'r') as f:
+			mappings = f.read()
 
-				# remove the gap after each dll header
-				mappings = mappings.replace('.dll\n\n', '.dll\n')
+			# remove the gap after each dll header
+			mappings = mappings.replace('.dll\n\n', '.dll\n')
 
-				# split by triple newlines to split per-dll
-				mappings = mappings.split('\n\n\n')
+			# split by triple newlines to split per-dll
+			mappings = mappings.split('\n\n\n')
 
-				for dll in mappings:
-					# split per newline to get all methods
-					methods = dll.split('\n')
-					if len(methods) == 1:
-						continue
+			for dll in mappings:
+				# split per newline to get all methods
+				methods = dll.split('\n')
+				if len(methods) == 1:
+					continue
 
-					# get dll name (w/o extension) & write to file
-					dll_name = os.path.splitext(methods[0])[0]
-					methods.pop(0)
-					with open(f'{API.path}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
-						f.write('\n'.join(methods))
+				# get dll name (w/o extension) & write to file
+				dll_name = os.path.splitext(methods[0])[0]
+				methods.pop(0)
+				with open(f'{API.path}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
+					f.write('\n'.join(methods))
 
-		logger.success('Finished splitting WASM mappings!\n')
+		logger.success('Finished splitting WASM mappings!')

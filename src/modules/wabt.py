@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import subprocess
 import tarfile
 import requests
 from typing import Final
@@ -27,7 +28,7 @@ class WABT():
 
 		# download wabt if it hasn't been downloaded already
 		if (
-			(os.name == "nt" and os.path.exists(f"{API.wabt_path}/wasm2wat.exe.exe")) or
+			(os.name == "nt" and os.path.exists(f"{API.wabt_path}/wasm2wat.exe")) or
 			(os.name == "posix" and os.path.exists(f'{API.wabt_path}/wasm2wat'))
 		):
 			logger.info("Found WABT path.")
@@ -78,7 +79,36 @@ class WABT():
 				os.system('chmod +x {API.wabt_path}/*')
 
 	def to_wat(self):
-		pass
+		logger.info('Running wasm2wat (this may take a while)')
+
+		path = f'{API.wabt_path}/wasm2wat{".exe" if os.name == "nt" else ""}'
+		output = subprocess.run([
+			path,
+			*self.args,
+			'--output', f'{API.path}/game.wat'
+		], capture_output=API.silent)
+
+		# error handling
+		if output.returncode == 0:
+			logger.success('game.wat generated!')
+		else:
+			logger.error('An error likely occurred during the generation of game.wat.')
+			if (output.stderr):
+				print(output.stderr.decode('utf-8').splitlines()[-15:])
 
 	def decompile(self):
-		pass
+		logger.info('Running wasm-decompile (this may take a while)')
+
+		path = f'{API.wabt_path}/wasm-decompile{".exe" if os.name == "nt" else ""}'
+		output = subprocess.run([
+			path,
+			*self.args,
+			'--output', f'{API.path}/game.wasm.dcmp'
+		])
+
+		# if the return code is not 0, an error likely occurred
+		if output.returncode != 0:
+			logger.error('An error likely occurred during WASM decompilation.')
+			print(output.stderr.decode('utf-8').splitlines()[-15:])
+		else:
+			logger.success('WASM decompiled!')
