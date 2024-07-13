@@ -1,5 +1,6 @@
 import re
 import requests
+from uwdtool import UWDTool
 from typing import Final
 
 from utils import API
@@ -36,6 +37,8 @@ class Setup():
 		with open(f'{API.path}/game.wasm', 'wb') as f:
 			f.write(self.wasm)
 
+		self.__unpack_web_data()
+
 	def __fetch_initial_page(self) -> str:
 		logger.info("Fetching HTML from Kour.io")
 		r = requests.get(self.BASE_DOMAIN)
@@ -58,6 +61,11 @@ class Setup():
 		url = self.build_url + re.findall(self.WEB_DATA_REGEX, self.html)[0]
 		r = requests.get(url)
 		return r.content
+
+	def __unpack_web_data(self):
+		logger.info("Unpacking WebData")
+		unpacker = UWDTool.UnPacker()
+		unpacker.unpack(f'{API.path}/web.data', f'{API.path}/WebData')  # unpacking
 
 	def __fetch_wasm(self) -> bytes:
 		logger.info("Fetching game.wasm")

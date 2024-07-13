@@ -1,6 +1,10 @@
+from utils import API
 from modules import Setup, CPP2IL, WABT
 
+
 def main():
+	API.parse_cmdline_args()
+
 	setup = Setup()
 	setup.fetch_kour_files()
 
