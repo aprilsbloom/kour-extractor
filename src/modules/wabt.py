@@ -1,5 +1,11 @@
+import os
+import re
+import shutil
+import tarfile
+import requests
 from typing import Final
 
+from utils import API
 from logger import Logger
 
 logger = Logger("WABT")
@@ -8,10 +14,68 @@ class WABT():
 	WABT_VERSION_REGEX: Final[str] = r'download\/([0-9.]+)'
 
 	def __init__(self) -> None:
+		self.args = [
+			f'{API.path}/game.wasm',
+			'--enable-all',
+		]
+
 		self.__ensure_downloaded()
 
 	def __ensure_downloaded(self):
-		pass
+		# setup wabt folder (just incase)
+		os.makedirs(API.wabt_path, exist_ok=True)
+
+		# download wabt if it hasn't been downloaded already
+		if (
+			(os.name == "nt" and os.path.exists(f"{API.wabt_path}/wasm2wat.exe.exe")) or
+			(os.name == "posix" and os.path.exists(f'{API.wabt_path}/wasm2wat'))
+		):
+			logger.info("Found WABT path.")
+			return
+
+		logger.info("Downloading WABT")
+
+		r = requests.get(self.WABT_REPO)
+		if r.status_code != 200:
+			logger.error("Failed to get WABT's latest release.")
+			return
+
+		# get the latest version of WABT for the current platform
+		sys_name = 'windows' if os.name == 'nt' else 'ubuntu' if os.name == 'posix' else 'macos'
+		for asset in r.json().get('assets', []):
+			# If the asset isn't for the current platform
+			if sys_name not in asset['name']:
+				continue
+
+			# If the asset is hashed
+			if '.sha256' in asset['name']:
+				continue
+
+			# Download the release
+			asset_url = asset.get('browser_download_url')
+			version = re.findall(self.WABT_VERSION_REGEX, asset_url)[0]
+			asset_res = requests.get(asset_url)
+			with open('wabt.tar.gz', 'wb') as f:
+				f.write(asset_res.content)
+
+			# extract the tar archive
+			try:
+				with tarfile.open('wabt.tar.gz', 'r:gz') as f:
+					f.extractall(API.wabt_path)
+			except tarfile.ReadError: # this just happens??? idfk why but it still extracts perfectly fine lol its so weird
+				pass
+
+			# move the bin folder to the root directory
+			for file in os.listdir(f'{API.wabt_path}/wabt-{version}/bin'):
+				shutil.move(f'{API.wabt_path}/wabt-{version}/bin/{file}', API.wabt_path)
+
+			# remove redundant files
+			shutil.rmtree(f'{API.wabt_path}/wabt-{version}')
+			os.remove('wabt.tar.gz')
+
+			# make all files in the wabt directory executable when on linux
+			if sys_name != 'windows':
+				os.system('chmod +x {API.wabt_path}/*')
 
 	def to_wat(self):
 		pass

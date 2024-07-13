@@ -4,8 +4,8 @@ import requests
 from zipfile import ZipFile
 from typing import Final
 
-from logger import Logger
 from utils import API
+from logger import Logger
 
 logger = Logger("CPP2IL")
 class CPP2IL():

@@ -10,11 +10,11 @@ from logger import Logger
 logger = Logger("Setup")
 class Setup():
 	BASE_DOMAIN: Final[str] = "https://kour.io"
-	VERSION_REGEX: Final = r"productVersion:(?: |)\"([0-9.]+)"
-	BUILD_REGEX: Final = r"buildUrl(?: |)=(?: |)(?:[a-zA-Z +\?]+)\"(?:[a-zA-Z:\/\-\.\ ]+)\"(?: |):(?: |)\"([a-zA-Z:\/\-\.\ ]+)"
-	FRAMEWORK_REGEX: Final = r"frameworkUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
-	WEB_DATA_REGEX: Final = r"dataUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
-	WASM_REGEX: Final = r"codeUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
+	VERSION_REGEX: Final[str] = r"productVersion:(?: |)\"([0-9.]+)"
+	BUILD_REGEX: Final[str] = r"buildUrl(?: |)=(?: |)(?:[a-zA-Z +\?]+)\"(?:[a-zA-Z:\/\-\.\ ]+)\"(?: |):(?: |)\"([a-zA-Z:\/\-\.\ ]+)"
+	FRAMEWORK_REGEX: Final[str] = r"frameworkUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
+	WEB_DATA_REGEX: Final[str] = r"dataUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
+	WASM_REGEX: Final[str] = r"codeUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
 
 	def fetch_kour_files(self):
 		self.html = self.__fetch_initial_page()
