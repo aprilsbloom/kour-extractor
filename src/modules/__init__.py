@@ -1,7 +1,7 @@
-from modules.cpp2il import run_cpp2il
-from modules.wabt import run_wasmtoolkit
+from .cpp2il import CPP2IL
+from .wabt import WABT
 
 __all__ = [
-	"run_cpp2il",
-	"run_wasmtoolkit"
+	"CPP2IL",
+	"WABT"
 ]
