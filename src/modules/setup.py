@@ -1,6 +1,7 @@
 import re
 import requests
 from logger import Logger
+from modules import API
 from typing import Final
 
 logger = Logger("Setup")
@@ -12,9 +13,6 @@ class Setup():
 	WEB_DATA_REGEX: Final = r"dataUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
 	WASM_REGEX: Final = r"codeUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
 
-	def __init__(self) -> None:
-		pass
-
 	def fetch_kour_files(self):
 		self.html = self.__fetch_initial_page()
 		self.version = self.__fetch_version()
@@ -23,6 +21,9 @@ class Setup():
 		self.framework = self.__fetch_framework()
 		self.web_data = self.__fetch_web_data()
 		self.wasm = self.__fetch_wasm()
+
+		API.version = self.version
+		API.setup_directory()
 
 	def __fetch_initial_page(self) -> str:
 		logger.info("Fetching HTML from Kour.io")
@@ -36,16 +37,19 @@ class Setup():
 		return re.findall(self.BUILD_REGEX, self.html)[0]
 
 	def __fetch_framework(self) -> str:
+		logger.info("Fetching framework.js")
 		url = self.build_url + re.findall(self.FRAMEWORK_REGEX, self.html)[0]
 		r = requests.get(url)
 		return r.text
 
 	def __fetch_web_data(self) -> bytes:
+		logger.info("Fetching WebData")
 		url = self.build_url + re.findall(self.WEB_DATA_REGEX, self.html)[0]
 		r = requests.get(url)
 		return r.content
 
 	def __fetch_wasm(self) -> bytes:
+		logger.info("Fetching game.wasm")
 		url = self.build_url + re.findall(self.WASM_REGEX, self.html)[0]
 		r = requests.get(url)
 		return r.content
