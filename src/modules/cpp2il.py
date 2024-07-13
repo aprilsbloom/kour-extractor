@@ -108,17 +108,23 @@ class CPP2IL():
 		if os.path.exists(f'{API.path}/CPP2IL/wasm_mappings.txt'):
 			with open(f'{API.path}/CPP2IL/wasm_mappings.txt', 'r') as f:
 				mappings = f.read()
-				mappings = mappings.replace('.dll\n\n', '.dll\n').split('\n\n\n') # just a way to get the list of mappings due to how its formatted
+
+				# remove the gap after each dll header
+				mappings = mappings.replace('.dll\n\n', '.dll\n')
+
+				# split by triple newlines to split per-dll
+				mappings = mappings.split('\n\n\n')
 
 				for dll in mappings:
-					methods = dll.split('\n') # split it per newline to get all methods
+					# split per newline to get all methods
+					methods = dll.split('\n')
 					if len(methods) == 1:
 						continue
 
-					name = os.path.splitext(methods[0])[0] # get dll name (w/o extension)
-					with open(f'{API.path}/CPP2IL/WASM Mappings/{name}.txt', 'w') as f:
-						f.write('\n'.join(methods[1:]))
-
-			# os.remove(f'{API.path}/CPP2IL/wasm_mappings.txt')
+					# get dll name (w/o extension) & write to file
+					dll_name = os.path.splitext(methods[0])[0]
+					methods.pop(0)
+					with open(f'{API.path}/CPP2IL/WASM Mappings/{dll_name}.txt', 'w') as f:
+						f.write('\n'.join(methods))
 
 		logger.success('Finished splitting WASM mappings!\n')
