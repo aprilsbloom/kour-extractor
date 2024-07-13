@@ -1,5 +1,6 @@
-from logger import Logger
 from typing import Final
+
+from logger import Logger
 
 logger = Logger("CPP2IL")
 class CPP2IL():

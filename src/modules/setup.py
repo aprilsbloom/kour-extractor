@@ -1,8 +1,10 @@
 import re
 import requests
-from logger import Logger
-from modules import API
 from typing import Final
+
+from utils import API
+from logger import Logger
+
 
 logger = Logger("Setup")
 class Setup():
@@ -16,14 +18,23 @@ class Setup():
 	def fetch_kour_files(self):
 		self.html = self.__fetch_initial_page()
 		self.version = self.__fetch_version()
-		self.build_url = self.__fetch_build_url()
 
+		API.version = self.version
+		API.setup_directory()
+
+		self.build_url = self.__fetch_build_url()
 		self.framework = self.__fetch_framework()
 		self.web_data = self.__fetch_web_data()
 		self.wasm = self.__fetch_wasm()
 
-		API.version = self.version
-		API.setup_directory()
+		with open(f'{API.path}/framework.js', 'w') as f:
+			f.write(self.framework)
+
+		with open(f'{API.path}/web.data', 'wb') as f:
+			f.write(self.web_data)
+
+		with open(f'{API.path}/game.wasm', 'wb') as f:
+			f.write(self.wasm)
 
 	def __fetch_initial_page(self) -> str:
 		logger.info("Fetching HTML from Kour.io")
