@@ -20,11 +20,20 @@ class API:
 	def parse_cmdline_args():
 		parser = argparse.ArgumentParser(description='Kour.io extractor')
 		parser.add_argument('-w', '--wabt-path', type=str, help='Path to WABT binaries', default='resources/wabt')
-		parser.add_argument('-c', '--cpp2il-path', type=str, help='Path to cpp2il binaries', default='resources/cpp2il')
+		parser.add_argument('-c', '--cpp2il-path', type=str, help='Path to CPP2IL binaries', default='resources/cpp2il')
 
 		API.cmd_args = parser.parse_args()
 		API.wabt_path = API.cmd_args.wabt_path
 		API.cpp2il_path = API.cmd_args.cpp2il_path
+
+		os.makedirs(API.wabt_path, exist_ok=True)
+		os.makedirs(API.cpp2il_path, exist_ok=True)
+
+		# if not os.path.exists(API.wabt_path):
+		# 	raise FileNotFoundError(f'WABT binaries not found at {API.wabt_path}')
+
+		# if not os.path.exists(API.cpp2il_path):
+		# 	raise FileNotFoundError(f'CPP2IL binaries not found at {API.cpp2il_path}')
 
 	@staticmethod
 	def setup_directory():

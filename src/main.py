@@ -8,9 +8,9 @@ def main():
 	setup = Setup()
 	setup.fetch_kour_files()
 
-	# cpp2il = CPP2IL()
-	# cpp2il.diffable_cs()
-	# cpp2il.wasm_mappings()
+	cpp2il = CPP2IL()
+	cpp2il.diffable_cs()
+	cpp2il.wasm_mappings()
 
 	# wabt = WABT()
 	# wabt.to_wat()
