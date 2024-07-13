@@ -36,7 +36,7 @@ class CPP2IL():
 			(os.name == "nt" and os.path.exists(f"{API.cpp2il_path}/Cpp2IL.exe")) or
 			(os.name == "posix" and os.path.exists(API.cpp2il_path))
 		):
-			logger.info("CPP2IL already downloaded.")
+			logger.info("Found CPP2IL path.")
 			return
 
 		logger.info("Downloading CPP2IL")
@@ -75,12 +75,13 @@ class CPP2IL():
 			'--output-as', 'diffable-cs'
 		], capture_output=API.silent)
 
-		# if the return code is not 0, an error likely occurred
-		if output.returncode != 0:
-			logger.error('An error likely occurred during the generation of diffable-cs files.\n')
-			print(output.stderr.decode('utf-8').splitlines()[-15:])
-		else:
+		# error handling
+		if output.returncode == 0:
 			logger.success('Diffable C# files generated!\n')
+		else:
+			logger.error('An error likely occurred during the generation of diffable-cs files.\n')
+			if (output.stderr):
+				print(output.stderr.decode('utf-8').splitlines()[-15:])
 
 	def wasm_mappings(self):
 		logger.info('Generating WASM mappings')
@@ -90,13 +91,13 @@ class CPP2IL():
 			'--output-as', 'wasmmappings'
 		], capture_output=API.silent)
 
-		# if the return code is not 0, an error likely occurred
-		if output.returncode != 0:
-			logger.error('An error likely occurred during the generation of wasm mappings.\n')
-			print(output.stderr.decode('utf-8').splitlines()[-15:])
-		else:
+		# error handling
+		if output.returncode == 0:
 			logger.success('WASM mappings generated!\n')
-
+		else:
+			logger.error('An error likely occurred during the generation of the WASM Mappings.\n')
+			if (output.stderr):
+				print(output.stderr.decode('utf-8').splitlines()[-15:])
 
 		# fixing the wasm mappings by splitting them into individual files
 		# this is because cpp2il returns it into a single file for some reason??
@@ -120,4 +121,4 @@ class CPP2IL():
 
 			# os.remove(f'{API.path}/CPP2IL/wasm_mappings.txt')
 
-		logger.success('Finished fixing WASM mappings!\n')
+		logger.success('Finished splitting WASM mappings!\n')

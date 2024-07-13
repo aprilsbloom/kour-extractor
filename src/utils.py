@@ -23,7 +23,7 @@ class API:
 		parser = argparse.ArgumentParser(description='Kour.io extractor')
 		parser.add_argument('-w', '--wabt-path', type=str, help='Path to WABT binaries', default='resources/wabt')
 		parser.add_argument('-c', '--cpp2il-path', type=str, help='Path to CPP2IL binaries', default='resources/cpp2il')
-		parser.add_argument('-s', '--silent', type=bool, help='Prevents commands from outputting to console', default=False)
+		parser.add_argument('-s', '--silent', action=argparse.BooleanOptionalAction, help='Prevents commands from outputting to console', default=False)
 
 		API.cmd_args = parser.parse_args()
 		API.wabt_path = API.cmd_args.wabt_path
