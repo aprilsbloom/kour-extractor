@@ -16,12 +16,11 @@ colors: dict[Color, str] = {
 	'pink': '#ef77df',
 }
 
-
 class Logger():
 	RESET: Final[str] = '\033[0m'
 
 	def __init__(self, name: str = 'MAIN'):
-		self.name = name
+		self.name = name.upper()
 
 	@staticmethod
 	def fetchTime(format: str = '[%H:%M:%S]') -> str:
@@ -60,7 +59,7 @@ class Logger():
 		else:
 			return f'\033[38;2;{r};{g};{b}m'
 
-	def _log(
+	def __log(
 		self,
 		_color: Color,
 		args: Tuple[Any]
@@ -78,22 +77,22 @@ class Logger():
 		self,
 		*args: Any
 	):
-		self._log('lightblue', args)
+		self.__log('lightblue', args)
 
 	def error(
 		self,
 		*args: Any
 	):
-		self._log('red', args)
+		self.__log('red', args)
 
 	def warn(
 		self,
 		*args: Any
 	):
-		self._log('yellow', args)
+		self.__log('yellow', args)
 
 	def success(
 		self,
 		*args: Any
 	):
-		self._log('green', args)
+		self.__log('green', args)

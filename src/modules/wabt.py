@@ -1,114 +1,114 @@
 import os
 import re
+import shutil
 import subprocess
 import tarfile
 import requests
-import shutil
-from typing import List
+from typing import Final
+
+from utils import API
 from logger import Logger
 
-logger = Logger('WABT')
-WABT_REPO = 'https://api.github.com/repos/WebAssembly/wabt/releases/latest'
-WABT_VERSION_REGEX = r'download\/([0-9.]+)'
+logger = Logger("WABT")
+class WABT():
+	WABT_REPO: Final[str] = 'https://api.github.com/repos/WebAssembly/wabt/releases/latest'
+	WABT_VERSION_REGEX: Final[str] = r'download\/([0-9.]+)'
 
-def run_wasmtoolkit(state: dict):
-	# base state
-	ensure_downloaded()
-	args = [
-		f'{state["output_dir"]}/game.wasm',
-		'--enable-all',
-	]
+	def __init__(self) -> None:
+		self.args = [
+			f'{API.path}/game.wasm',
+			'--enable-all',
+		]
 
-	wasm2wat(state, args)
-	wasm_decompile(state, args)
+		self.__ensure_downloaded()
 
+	def __ensure_downloaded(self):
+		# setup wabt folder (just incase)
+		os.makedirs(API.wabt_path, exist_ok=True)
 
-def ensure_downloaded():
-	# check to see if wabt exists in the resources folder
-	os.makedirs("resources", exist_ok=True)
+		# download wabt if it hasn't been downloaded already
+		if (
+			(os.name == "nt" and os.path.exists(f"{API.wabt_path}/wasm2wat.exe")) or
+			(os.name == "posix" and os.path.exists(f'{API.wabt_path}/wasm2wat'))
+		):
+			logger.info("Found WABT path.")
+			return
 
-	# download wabt if it hasn't been downloaded already
-	if os.path.exists('resources/wabt'):
-		return
+		logger.info("Downloading WABT")
 
-	logger.info('Downloading WABT')
+		r = requests.get(self.WABT_REPO)
+		if r.status_code != 200:
+			logger.error("Failed to get WABT's latest release.")
+			return
 
-	# fetch latest release
-	r = requests.get(WABT_REPO)
-	assets = r.json().get('assets', [])
-	if len(assets) == 0:
-		raise Exception("No assets found!")
+		# get the latest version of WABT for the current platform
+		sys_name = 'windows' if os.name == 'nt' else 'ubuntu' if os.name == 'posix' else 'macos'
+		for asset in r.json().get('assets', []):
+			# If the asset isn't for the current platform
+			if sys_name not in asset['name']:
+				continue
 
-	# go through each asset and check if it matches the current system
-	sys_name = 'ubuntu' if os.name == 'posix' else 'windows'
-	for asset in assets:
-		asset_name = asset.get('name', '')
+			# If the asset is hashed
+			if '.sha256' in asset['name']:
+				continue
 
-		# check to see if the asset is for the current system (and isn't a sha256 file)
-		if sys_name not in asset_name:
-			continue
+			# Download the release
+			asset_url = asset.get('browser_download_url')
+			version = re.findall(self.WABT_VERSION_REGEX, asset_url)[0]
+			asset_res = requests.get(asset_url)
+			with open('wabt.tar.gz', 'wb') as f:
+				f.write(asset_res.content)
 
-		if '.sha256' in asset_name:
-			continue
+			# extract the tar archive
+			try:
+				with tarfile.open('wabt.tar.gz', 'r:gz') as f:
+					f.extractall(API.wabt_path)
+			except tarfile.ReadError: # this just happens??? idfk why but it still extracts perfectly fine lol its so weird
+				pass
 
-		# download the asset
-		asset_url = asset.get('browser_download_url')
-		asset_res = requests.get(asset_url)
-		with open('wabt.tar.gz', 'wb') as f:
-			f.write(asset_res.content)
+			# move the bin folder to the root directory
+			for file in os.listdir(f'{API.wabt_path}/wabt-{version}/bin'):
+				shutil.move(f'{API.wabt_path}/wabt-{version}/bin/{file}', API.wabt_path)
 
-		# extract the tar archive
-		try:
-			with tarfile.open('wabt.tar.gz', 'r:gz') as f:
-				f.extractall('resources/wabt/')
-		except tarfile.ReadError: # this just happens??? idfk why but it still extracts perfectly fine lol its so weird
-			pass
+			# remove redundant files
+			shutil.rmtree(f'{API.wabt_path}/wabt-{version}')
+			os.remove('wabt.tar.gz')
 
-		# move the bin folder to the root directory & remove redundant files
-		version = re.findall(WABT_VERSION_REGEX, asset_url)[0]
-		shutil.move(f'resources/wabt/wabt-{version}/bin', 'resources/')
-		shutil.rmtree('resources/wabt')
+			# make all files in the wabt directory executable when on linux
+			if sys_name != 'windows':
+				os.system('chmod +x {API.wabt_path}/*')
 
-		os.rename('resources/bin', 'resources/wabt')
-		os.remove('wabt.tar.gz')
+	def to_wat(self):
+		logger.info('Running wasm2wat (this may take a while)')
 
-		# make all files in the wabt directory executable when on linux
-		if sys_name == 'ubuntu':
-			os.system('chmod +x resources/wabt/*')
+		path = f'{API.wabt_path}/wasm2wat{".exe" if os.name == "nt" else ""}'
+		output = subprocess.run([
+			path,
+			*self.args,
+			'--output', f'{API.path}/game.wat'
+		], capture_output=API.silent)
 
-	logger.success('WABT downloaded!\n')
+		# error handling
+		if output.returncode == 0:
+			logger.success('game.wat generated!')
+		else:
+			logger.error('An error likely occurred during the generation of game.wat.')
+			if (output.stderr):
+				print(output.stderr.decode('utf-8').splitlines()[-15:])
 
+	def decompile(self):
+		logger.info('Running wasm-decompile (this may take a while)')
 
+		path = f'{API.wabt_path}/wasm-decompile{".exe" if os.name == "nt" else ""}'
+		output = subprocess.run([
+			path,
+			*self.args,
+			'--output', f'{API.path}/game.wasm.dcmp'
+		])
 
-# ==== Methods ==== #
-def wasm2wat(state: dict, args: List[str]):
-	logger.info('Running wasm2wat (this may take a while)')
-	path = 'resources/wabt/wasm2wat' if os.name == 'posix' else 'resources/wabt/wasm2wat.exe'
-	output = subprocess.run([
-		path,
-		*args,
-		'--output', f'{state["output_dir"]}/game.wat'
-	], capture_output=False)
-
-	# if the return code is not 0, an error likely occurred
-	if output.returncode != 0:
-		logger.error('An error likely occurred during the generation of game.wat.\n')
-		print(output.stderr.decode('utf-8').splitlines()[-15:])
-	else:
-		logger.success('game.wat generated!\n')
-
-def wasm_decompile(state: dict, args: List[str]):
-	logger.info('Running wasm-decompile (this may take a while)')
-	path = 'resources/wabt/wasm-decompile' if os.name == 'posix' else 'resources/wabt/wasm-decompile.exe'
-	output = subprocess.run([
-		path,
-		*args,
-		'--output', f'{state["output_dir"]}/game.wasm.dcmp'
-	])
-
-	# if the return code is not 0, an error likely occurred
-	if output.returncode != 0:
-		logger.error('An error likely occurred during wasm decompilation.\n')
-		print(output.stderr.decode('utf-8').splitlines()[-15:])
-	else:
-		logger.success('WASM decompiled!\n')
+		# if the return code is not 0, an error likely occurred
+		if output.returncode != 0:
+			logger.error('An error likely occurred during WASM decompilation.')
+			print(output.stderr.decode('utf-8').splitlines()[-15:])
+		else:
+			logger.success('WASM decompiled!')
