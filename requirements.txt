@@ -3,4 +3,3 @@ GitPython
 argparse
 rich
 requests
-brotlipy

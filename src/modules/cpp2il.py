@@ -1,7 +1,13 @@
+from logger import Logger
+from typing import Final
 
+logger = Logger("CPP2IL")
 class CPP2IL():
-	def __init__(self, path: str) -> None:
-		self.path = path
+	WINDOWS_LINK: Final[str] = "https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-Netframework472-Windows.zip"
+	LINUX_LINK: Final[str] = "https://nightly.link/SamboyCoding/Cpp2IL/workflows/dotnet-core/development/Cpp2IL-net7-linux-x64.zip"
+
+	def __init__(self) -> None:
+		self.path = ''
 		self.processors = ["attributeanalyzer", "attributeinjector", "callanalyzer", "nativemethoddetector"]
 		self.args = [
 			"--verbose",
