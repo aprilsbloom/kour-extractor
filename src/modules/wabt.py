@@ -8,6 +8,9 @@ class WABT():
 	WABT_VERSION_REGEX: Final[str] = r'download\/([0-9.]+)'
 
 	def __init__(self) -> None:
+		self.__ensure_downloaded()
+
+	def __ensure_downloaded(self):
 		pass
 
 	def to_wat(self):

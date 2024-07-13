@@ -9,14 +9,12 @@ def random_string(length: int) -> str:
 class API:
 	uuid: str = random_string(4)
 	version: str
-
 	path: str
-	wabt_path: str
-	cpp2il_path: str
-
-	silent: bool = False
 
 	cmd_args: argparse.Namespace
+	wabt_path: str
+	cpp2il_path: str
+	silent: bool = False
 
 	@staticmethod
 	def parse_cmdline_args():
