@@ -1,5 +1,5 @@
 uwdtool
 GitPython
 argparse
-rich
 requests
+nodriver

@@ -1,5 +1,6 @@
 import re
 import requests
+import nodriver as uc
 from uwdtool import UWDTool
 from typing import Final
 
@@ -17,7 +18,7 @@ class Setup():
 	WASM_REGEX: Final[str] = r"codeUrl:(?: |)buildUrl(?: |)\+(?: |)\"([a-zA-Z0-9.\/]+)\""
 
 	def fetch_kour_files(self):
-		self.html = self.__fetch_initial_page()
+		self.html = uc.loop().run_until_complete(self.__fetch_initial_page())
 		self.version = self.__fetch_version()
 
 		API.version = self.version
@@ -39,10 +40,24 @@ class Setup():
 
 		self.__unpack_web_data()
 
-	def __fetch_initial_page(self) -> str:
+	async def __fetch_initial_page(self) -> str:
 		logger.info("Fetching HTML from Kour.io")
-		r = requests.get(self.BASE_DOMAIN)
-		return r.text
+
+		# Load kour
+		browser = await uc.start()
+		page = await browser.get('https://kour.io')
+		await page
+
+		# Ensure turnstile isn't shown
+		captcha = await page.query_selector('iframe[src^="https://challenges.cloudflare.com"]')
+		if captcha:
+			input("CAPTCHA DETECTED: Please confirm you have finished the captcha and the page has now loaded: ")
+
+		# Return HTML
+		html = await page.get_content()
+		await page.close()
+
+		return html
 
 	def __fetch_version(self) -> str:
 		return re.findall(self.VERSION_REGEX, self.html)[0]
