@@ -76,7 +76,7 @@ class WABT():
 
 			# make all files in the wabt directory executable when on linux
 			if sys_name != 'windows':
-				os.system('chmod +x {API.wabt_path}/*')
+				os.system(f'chmod +x {API.wabt_path}/*')
 
 	def to_wat(self):
 		logger.info('Running wasm2wat (this may take a while)')

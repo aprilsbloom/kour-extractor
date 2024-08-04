@@ -25,7 +25,7 @@ class CPP2IL():
 		]
 
 		self.__ensure_downloaded()
-		API.cpp2il_path = API.cpp2il_path if os.name == "posix" else f"{API.cpp2il_path}/Cpp2IL.exe"
+		API.cpp2il_path = f"{API.cpp2il_path}/Cpp2IL" if os.name == "posix" else f"{API.cpp2il_path}/Cpp2IL.exe"
 
 	def __ensure_downloaded(self):
 		# setup cpp2il folder (just incase)
@@ -34,7 +34,7 @@ class CPP2IL():
 		# download cpp2il if it hasn't been downloaded already
 		if (
 			(os.name == "nt" and os.path.exists(f"{API.cpp2il_path}/Cpp2IL.exe")) or
-			(os.name == "posix" and os.path.exists(API.cpp2il_path))
+			(os.name == "posix" and os.path.exists(f"{API.cpp2il_path}/Cpp2IL"))
 		):
 			logger.info("Found CPP2IL path.")
 			return
